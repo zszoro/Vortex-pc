@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="WPF-UI" Version="3.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\VORTEX.Core\VORTEX.Core.csproj" />
+    <ProjectReference Include="..\VORTEX.AIProviders\VORTEX.AIProviders.csproj" />
+    <ProjectReference Include="..\VORTEX.Database\VORTEX.Database.csproj" />
+    <ProjectReference Include="..\VORTEX.Services\VORTEX.Services.csproj" />
+    <ProjectReference Include="..\VORTEX.ViewModels\VORTEX.ViewModels.csproj" />
+  </ItemGroup>
+
+</Project>

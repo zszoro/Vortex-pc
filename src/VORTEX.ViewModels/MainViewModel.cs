@@ -1,0 +1,82 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using System.Collections.ObjectModel;
+using VORTEX.Core;
+
+namespace VORTEX.ViewModels;
+
+public partial class MainViewModel : ObservableObject
+{
+    private readonly IAIProviderService _aiService;
+    private readonly IDatabaseService _dbService;
+
+    [ObservableProperty] private string _userName = "Você";
+    [ObservableProperty] private string _status = "Online";
+    [ObservableProperty] private string _userInput = string.Empty;
+    [ObservableProperty] private bool _isBusy;
+
+    public ObservableCollection<ChatMessage> Messages { get; } = [];
+
+    public MainViewModel(IAIProviderService aiService, IDatabaseService dbService)
+    {
+        _aiService = aiService;
+        _dbService = dbService;
+        _ = InitializeAsync();
+    }
+
+    private async Task InitializeAsync()
+    {
+        var profile = await _dbService.GetUserProfileAsync();
+        if (!string.IsNullOrWhiteSpace(profile?.Name)) UserName = profile.Name;
+        foreach (var message in await _dbService.GetChatMessagesAsync())
+        {
+            Messages.Add(message);
+        }
+    }
+
+    [RelayCommand]
+    private async Task SendMessageAsync()
+    {
+        if (string.IsNullOrWhiteSpace(UserInput) || IsBusy) return;
+
+        var prompt = UserInput.Trim();
+        UserInput = string.Empty;
+        var userMessage = new ChatMessage { Role = "Você", Content = prompt };
+        Messages.Add(userMessage);
+        await _dbService.SaveChatMessageAsync(userMessage);
+
+        Status = "Thinking";
+        IsBusy = true;
+        try
+        {
+            var content = await _aiService.AskAsync(prompt);
+            var reply = new ChatMessage { Role = "VORTEX", Content = content };
+            Messages.Add(reply);
+            await _dbService.SaveChatMessageAsync(reply);
+            Status = content.StartsWith("Erro", StringComparison.OrdinalIgnoreCase)
+                ? "Error"
+                : "Online";
+        }
+        catch (Exception ex)
+        {
+            Messages.Add(new ChatMessage
+            {
+                Role = "VORTEX",
+                Content = $"Não consegui concluir a solicitação: {ex.Message}"
+            });
+            Status = "Error";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task NewConversationAsync()
+    {
+        await _dbService.ClearChatMessagesAsync();
+        Messages.Clear();
+        Status = "Online";
+    }
+}

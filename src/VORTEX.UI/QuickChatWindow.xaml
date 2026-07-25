@@ -1,0 +1,53 @@
+<Window x:Class="VORTEX.UI.QuickChatWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        xmlns:local="clr-namespace:VORTEX.UI"
+        Title="Quick Chat" Height="500" Width="400"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        Topmost="True" WindowStartupLocation="Manual">
+    
+    <Border Background="#F00F0F1B" CornerRadius="20" BorderBrush="#30FFFFFF" BorderThickness="1" Margin="10">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="15" Opacity="0.5" ShadowDepth="0"/>
+        </Border.Effect>
+        
+        <Grid Margin="15">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Grid Grid.Row="0" Margin="0,0,0,10">
+                <local:VortexCore State="{Binding Status}" Width="40" Height="40" HorizontalAlignment="Left"/>
+                <TextBlock Text="VORTEX QUICK" VerticalAlignment="Center" Margin="50,0,0,0" FontWeight="Bold" Opacity="0.8"/>
+                <ui:Button Icon="{ui:SymbolIcon Dismiss24}" Appearance="Transparent" HorizontalAlignment="Right" Click="Close_Click"/>
+            </Grid>
+
+            <!-- Chat Area -->
+            <ui:ListView Grid.Row="1" ItemsSource="{Binding Messages}" Background="Transparent" BorderThickness="0">
+                <ui:ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Border Padding="10" Margin="0,3" CornerRadius="8" 
+                                Background="#20FFFFFF" MaxWidth="300" HorizontalAlignment="{Binding Role, Converter={StaticResource RoleToAlignmentConverter}}">
+                            <StackPanel>
+                                <TextBlock Text="{Binding Role}" FontSize="8" FontWeight="Bold" Opacity="0.5"/>
+                                <TextBlock Text="{Binding Content}" TextWrapping="Wrap" FontSize="12"/>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ui:ListView.ItemTemplate>
+            </ui:ListView>
+
+            <!-- Input -->
+            <ui:TextBox Grid.Row="2" Text="{Binding UserInput, UpdateSourceTrigger=PropertyChanged}" 
+                        PlaceholderText="Mensagem rápida..." Margin="0,10,0,0">
+                <ui:TextBox.InputBindings>
+                    <KeyBinding Key="Enter" Command="{Binding SendMessageCommand}"/>
+                </ui:TextBox.InputBindings>
+            </ui:TextBox>
+        </Grid>
+    </Border>
+</Window>

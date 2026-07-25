@@ -1,0 +1,63 @@
+<UserControl x:Class="VORTEX.UI.VortexCore"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Width="200" Height="200">
+    <Grid>
+        <!-- Halo Externo (Brilho) -->
+        <Ellipse x:Name="OuterHalo" Fill="Transparent" StrokeThickness="2" Opacity="0.3">
+            <Ellipse.Stroke>
+                <RadialGradientBrush>
+                    <GradientStop x:Name="HaloColor" Color="#4A90E2" Offset="0.5"/>
+                    <GradientStop Color="Transparent" Offset="1"/>
+                </RadialGradientBrush>
+            </Ellipse.Stroke>
+        </Ellipse>
+
+        <!-- Círculo Central Dinâmico -->
+        <Grid x:Name="CoreContainer" RenderTransformOrigin="0.5,0.5">
+            <Grid.RenderTransform>
+                <RotateTransform x:Name="RingRotation" Angle="0"/>
+            </Grid.RenderTransform>
+
+            <!-- Camada de Vidro -->
+            <Ellipse Fill="#15FFFFFF" Stroke="#30FFFFFF" StrokeThickness="1"/>
+
+            <!-- Núcleo de Energia -->
+            <Ellipse x:Name="InnerCore" Width="80" Height="80" Opacity="0.8">
+                <Ellipse.Fill>
+                    <RadialGradientBrush>
+                        <GradientStop x:Name="CoreColor1" Color="#00F2FE" Offset="0"/>
+                        <GradientStop x:Name="CoreColor2" Color="#4FACFE" Offset="1"/>
+                    </RadialGradientBrush>
+                </Ellipse.Fill>
+                <Ellipse.Effect>
+                    <BlurEffect Radius="20"/>
+                </Ellipse.Effect>
+            </Ellipse>
+
+            <!-- Partículas/Anéis -->
+            <Ellipse Width="120" Height="120" Stroke="#40FFFFFF" StrokeThickness="0.5" StrokeDashArray="4 4"/>
+            <Ellipse Width="150" Height="150" Stroke="#20FFFFFF" StrokeThickness="0.5" StrokeDashArray="2 8"/>
+        </Grid>
+    </Grid>
+
+    <UserControl.Resources>
+        <!-- Animação Online (Pulso Suave) -->
+        <Storyboard x:Key="OnlineAnimation" RepeatBehavior="Forever">
+            <DoubleAnimation Storyboard.TargetName="InnerCore" Storyboard.TargetProperty="Opacity"
+                             From="0.6" To="0.9" Duration="0:0:2" AutoReverse="True"/>
+            <DoubleAnimation Storyboard.TargetName="OuterHalo" Storyboard.TargetProperty="Opacity"
+                             From="0.1" To="0.4" Duration="0:0:2" AutoReverse="True"/>
+            <DoubleAnimation Storyboard.TargetName="RingRotation" Storyboard.TargetProperty="Angle"
+                             From="0" To="360" Duration="0:0:20"/>
+        </Storyboard>
+
+        <!-- Animação de Rotação (Pensando) -->
+        <Storyboard x:Key="ThinkingAnimation" RepeatBehavior="Forever">
+            <DoubleAnimation Storyboard.TargetName="RingRotation" Storyboard.TargetProperty="Angle"
+                             From="0" To="360" Duration="0:0:1.5"/>
+            <DoubleAnimation Storyboard.TargetName="InnerCore" Storyboard.TargetProperty="Opacity"
+                             From="0.4" To="1" Duration="0:0:0.5" AutoReverse="True"/>
+        </Storyboard>
+    </UserControl.Resources>
+</UserControl>

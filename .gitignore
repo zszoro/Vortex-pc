@@ -1,0 +1,23 @@
+# Build
+**/bin/
+**/obj/
+publish/
+artifacts/
+
+# IDE
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Local data and secrets
+*.db
+*.db-shm
+*.db-wal
+.env
+.env.*
+appsettings.Local.json
+
+# Packages and logs
+packages/
+*.log

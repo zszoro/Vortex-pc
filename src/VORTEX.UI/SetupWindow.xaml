@@ -1,0 +1,32 @@
+<ui:FluentWindow x:Class="VORTEX.UI.SetupWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        Title="VORTEX Setup" Height="500" Width="400"
+        WindowStartupLocation="CenterScreen"
+        ExtendsContentIntoTitleBar="True">
+    
+    <Grid Margin="30">
+        <StackPanel VerticalAlignment="Center">
+            <TextBlock Text="Bem-vindo ao VORTEX" FontSize="22" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,30"/>
+            
+            <TextBlock Text="Seu Nome" Margin="0,0,0,5"/>
+            <ui:TextBox Text="{Binding Name}" PlaceholderText="Como devo te chamar?" Margin="0,0,0,20"/>
+
+            <TextBlock Text="Provedor de IA" Margin="0,0,0,5"/>
+            <ComboBox ItemsSource="{Binding Providers}" SelectedItem="{Binding SelectedProvider}" Margin="0,0,0,20"/>
+
+            <TextBlock Text="Modelo de IA" Margin="0,0,0,5"/>
+            <ui:TextBox Text="{Binding SelectedModel}" PlaceholderText="Ex: openai/gpt-oss-120b" Margin="0,0,0,20"/>
+
+            <TextBlock Text="API Key" Margin="0,0,0,5"/>
+            <ui:PasswordBox Password="{Binding ApiKey}" Margin="0,0,0,10"/>
+            
+            <ui:Button Content="Testar Conexão" Command="{Binding TestConnectionCommand}" Margin="0,0,0,10" HorizontalAlignment="Stretch"/>
+            <TextBlock Text="{Binding ConnectionStatus}" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+
+            <ui:Button Content="Finalizar Configuração" Command="{Binding FinishSetupCommand}" 
+                       Appearance="Primary" HorizontalAlignment="Stretch" Padding="15"/>
+        </StackPanel>
+    </Grid>
+</ui:FluentWindow>

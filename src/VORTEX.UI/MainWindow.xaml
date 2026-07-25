@@ -1,0 +1,180 @@
+<ui:FluentWindow x:Class="VORTEX.UI.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:local="clr-namespace:VORTEX.UI"
+    Title="VORTEX — Agente pessoal" Height="800" Width="1240"
+    MinHeight="680" MinWidth="980" WindowStartupLocation="CenterScreen"
+    ExtendsContentIntoTitleBar="True" WindowBackdropType="Mica">
+
+    <Window.Resources>
+        <Style x:Key="MessageCard" TargetType="Border">
+            <Setter Property="CornerRadius" Value="18"/>
+            <Setter Property="Padding" Value="18,14"/>
+            <Setter Property="Margin" Value="0,7"/>
+            <Setter Property="MaxWidth" Value="700"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="Background" Value="#D9121825"/>
+            <Setter Property="BorderBrush" Value="#22FFFFFF"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Role}" Value="Você">
+                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                    <Setter Property="Background" Value="#CC253349"/>
+                    <Setter Property="BorderBrush" Value="#5555E6FF"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid Background="#F2070A12">
+        <Ellipse Width="700" Height="700" HorizontalAlignment="Right" VerticalAlignment="Top"
+                 Margin="0,-420,-280,0" IsHitTestVisible="False">
+            <Ellipse.Fill>
+                <RadialGradientBrush>
+                    <GradientStop Color="#268B7CFF" Offset="0"/>
+                    <GradientStop Color="#008B7CFF" Offset="1"/>
+                </RadialGradientBrush>
+            </Ellipse.Fill>
+        </Ellipse>
+
+        <Grid Margin="20,42,20,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="230"/>
+                <ColumnDefinition Width="18"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Style="{StaticResource PanelStyle}" Padding="16">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Orientation="Horizontal" Margin="6,4,0,25">
+                        <Border Width="36" Height="36" CornerRadius="12" Background="#2255E6FF">
+                            <TextBlock Text="V" FontSize="19" FontWeight="Black" Foreground="{StaticResource AccentBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Margin="11,0,0,0">
+                            <TextBlock Text="V O R T E X" FontSize="15" FontWeight="Bold"/>
+                            <TextBlock Text="P E R S O N A L  A G E N T" FontSize="7" Foreground="{StaticResource MutedTextBrush}"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <Button Grid.Row="1" Content="+  Nova conversa" Command="{Binding NewConversationCommand}"
+                            Background="#1E55E6FF" Foreground="#DFFAFF" BorderBrush="#4455E6FF"
+                            BorderThickness="1" Padding="14,11" Margin="0,0,0,20"/>
+
+                    <StackPanel Grid.Row="2">
+                        <Button Style="{StaticResource NavButtonStyle}" Content="●  Conversa"/>
+                        <Button Style="{StaticResource NavButtonStyle}" Content="◈  Memória"/>
+                        <Button Style="{StaticResource NavButtonStyle}" Content="⌁  Automações"/>
+                    </StackPanel>
+
+                    <Border Grid.Row="3" Background="#0EFFFFFF" CornerRadius="14" Padding="12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Ellipse Width="9" Height="9" Fill="#43E6A0" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Column="1" Margin="9,0">
+                                <TextBlock Text="{Binding UserName}" FontWeight="SemiBold" FontSize="12"/>
+                                <TextBlock Text="Sistema pronto" Foreground="{StaticResource MutedTextBrush}" FontSize="10"/>
+                            </StackPanel>
+                            <ui:Button Grid.Column="2" Icon="{ui:SymbolIcon Settings20}" Appearance="Transparent"
+                                       Click="Settings_Click"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="2" Style="{StaticResource PanelStyle}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="74"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Margin="24,0" VerticalAlignment="Center">
+                        <StackPanel>
+                            <TextBlock Text="Conversa principal" FontSize="17" FontWeight="SemiBold"/>
+                            <TextBlock Text="Contexto local • histórico protegido" FontSize="10"
+                                       Foreground="{StaticResource MutedTextBrush}"/>
+                        </StackPanel>
+                        <Border HorizontalAlignment="Right" Background="#1043E6A0" BorderBrush="#3043E6A0"
+                                BorderThickness="1" CornerRadius="12" Padding="12,7">
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse Width="7" Height="7" Fill="#43E6A0" Margin="0,0,7,0"/>
+                                <TextBlock Text="{Binding Status}" FontSize="11" Foreground="#A7F7CF"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <Grid Grid.Row="1">
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    Visibility="{Binding Messages.Count, Converter={StaticResource CountToVisibilityConverter}}">
+                            <local:VortexCore State="{Binding Status}" Width="170" Height="170"/>
+                            <TextBlock Text="O que vamos construir hoje?" FontSize="24" FontWeight="SemiBold"
+                                       HorizontalAlignment="Center" Margin="0,18,0,7"/>
+                            <TextBlock Text="Pergunte, planeje ou transforme uma ideia em ação."
+                                       Foreground="{StaticResource MutedTextBrush}" HorizontalAlignment="Center"/>
+                        </StackPanel>
+
+                        <ListView x:Name="MessageList" ItemsSource="{Binding Messages}" Background="Transparent"
+                                  BorderThickness="0" Padding="34,14" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem">
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="BorderThickness" Value="0"/>
+                                    <Setter Property="Focusable" Value="False"/>
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource MessageCard}">
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Role}" FontSize="10" FontWeight="Bold"
+                                                       Foreground="{StaticResource AccentBrush}" Margin="0,0,0,6"/>
+                                            <TextBlock Text="{Binding Content}" TextWrapping="Wrap" FontSize="14" LineHeight="21"/>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </Grid>
+
+                    <Grid Grid.Row="2" Margin="28,12,28,25">
+                        <Border Background="#E20B101B" CornerRadius="18" BorderBrush="#3055E6FF"
+                                BorderThickness="1" Padding="7">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <ui:TextBox Text="{Binding UserInput, UpdateSourceTrigger=PropertyChanged}"
+                                            PlaceholderText="Digite uma mensagem para o VORTEX..."
+                                            Background="Transparent" BorderThickness="0" Padding="15,12"
+                                            FontSize="14">
+                                    <ui:TextBox.InputBindings>
+                                        <KeyBinding Key="Enter" Command="{Binding SendMessageCommand}"/>
+                                    </ui:TextBox.InputBindings>
+                                </ui:TextBox>
+                                <ui:Button Grid.Column="1" Icon="{ui:SymbolIcon Send24}" Command="{Binding SendMessageCommand}"
+                                           Appearance="Primary" Width="43" Height="43" Margin="4"/>
+                            </Grid>
+                        </Border>
+                        <TextBlock Text="Enter para enviar" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                   Margin="0,0,58,-17" FontSize="9" Foreground="{StaticResource MutedTextBrush}"/>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</ui:FluentWindow>
