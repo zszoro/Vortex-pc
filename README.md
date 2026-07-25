@@ -11,6 +11,35 @@ Agente pessoal de IA para Windows, construído em C# com WPF e .NET 8.
 - Companion flutuante para acesso rápido.
 - Indicador visual dos estados online, pensando e erro.
 - Executável autocontido para Windows x64.
+- Contexto das últimas mensagens enviado ao modelo.
+- Terminal PowerShell integrado ao chat.
+- Abertura de aplicativos e pastas por linguagem natural.
+- Movimentação e edição de arquivos com confirmação explícita.
+
+## Comandos locais
+
+O VORTEX reconhece comandos comuns diretamente no chat:
+
+```text
+dir
+git status
+dotnet build
+/terminal Get-Process
+abra o bloco de notas
+abra a pasta "C:\Projetos"
+```
+
+Para operações que podem apagar, sobrescrever ou mover dados, reenvie a
+instrução com confirmação:
+
+```text
+/confirmar Move-Item -LiteralPath "C:\origem" -Destination "D:\destino"
+/confirmar modifique o arquivo "C:\notas.txt" com "novo conteúdo"
+```
+
+O diretório alterado com `cd` permanece ativo para os próximos comandos da
+sessão. A saída é limitada no chat e processos são interrompidos após 45
+segundos para evitar travamentos.
 
 ## Segurança
 
@@ -51,4 +80,4 @@ autocontida, portanto o computador de destino não precisa ter o .NET instalado.
 - Memória semântica por projeto.
 - Voz, atalhos globais e notificações.
 - Streaming de respostas e cancelamento.
-- Testes automatizados dos serviços e da persistência.
+- Testes adicionais da persistência e da interface.

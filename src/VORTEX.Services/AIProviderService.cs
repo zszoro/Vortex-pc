@@ -36,7 +36,25 @@ namespace VORTEX.Services
             var provider = _providers.FirstOrDefault(p => p.Name == primary.ProviderName);
             if (provider == null) return "Provedor configurado não encontrado.";
 
-            return await provider.GetResponseAsync(primary.ApiKey, primary.Model, prompt);
+            var recentMessages = await _databaseService.GetChatMessagesAsync(24);
+            var transcript = string.Join("\n", recentMessages.Select(message =>
+                $"{message.Role}: {message.Content}"));
+            if (transcript.Length > 16000)
+            {
+                transcript = transcript[^16000..];
+            }
+
+            var contextualPrompt = $"""
+                Use o histórico abaixo para manter continuidade. A última mensagem é o pedido atual.
+                Não diga que esqueceu informações presentes neste histórico.
+
+                HISTÓRICO:
+                {transcript}
+
+                PEDIDO ATUAL:
+                {prompt}
+                """;
+            return await provider.GetResponseAsync(primary.ApiKey, primary.Model, contextualPrompt);
         }
     }
 }

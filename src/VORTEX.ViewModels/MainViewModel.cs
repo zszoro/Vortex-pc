@@ -9,6 +9,7 @@ public partial class MainViewModel : ObservableObject
 {
     private readonly IAIProviderService _aiService;
     private readonly IDatabaseService _dbService;
+    private readonly IDesktopCommandService _desktopCommands;
 
     [ObservableProperty] private string _userName = "Você";
     [ObservableProperty] private string _status = "Online";
@@ -17,10 +18,14 @@ public partial class MainViewModel : ObservableObject
 
     public ObservableCollection<ChatMessage> Messages { get; } = [];
 
-    public MainViewModel(IAIProviderService aiService, IDatabaseService dbService)
+    public MainViewModel(
+        IAIProviderService aiService,
+        IDatabaseService dbService,
+        IDesktopCommandService desktopCommands)
     {
         _aiService = aiService;
         _dbService = dbService;
+        _desktopCommands = desktopCommands;
         _ = InitializeAsync();
     }
 
@@ -49,11 +54,16 @@ public partial class MainViewModel : ObservableObject
         IsBusy = true;
         try
         {
-            var content = await _aiService.AskAsync(prompt);
+            var localResult = await _desktopCommands.TryExecuteAsync(prompt);
+            var content = localResult.Handled
+                ? localResult.Output
+                : await _aiService.AskAsync(prompt);
             var reply = new ChatMessage { Role = "VORTEX", Content = content };
             Messages.Add(reply);
             await _dbService.SaveChatMessageAsync(reply);
-            Status = content.StartsWith("Erro", StringComparison.OrdinalIgnoreCase)
+            Status = localResult.Handled && localResult.IsError
+                ? "Error"
+                : content.StartsWith("Erro", StringComparison.OrdinalIgnoreCase)
                 ? "Error"
                 : "Online";
         }

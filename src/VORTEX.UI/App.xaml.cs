@@ -51,6 +51,7 @@ namespace VORTEX.UI
 
             // Services
             services.AddSingleton<IMessageService, MessageService>();
+            services.AddSingleton<IDesktopCommandService, DesktopCommandService>();
 
             // ViewModels
             services.AddTransient<SetupViewModel>();
