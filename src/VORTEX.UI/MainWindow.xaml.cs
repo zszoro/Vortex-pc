@@ -14,6 +14,7 @@ public partial class MainWindow
     private readonly IUpdateService _updateService;
     private AppUpdateInfo? _updateInfo;
     private readonly DispatcherTimer _updateTimer;
+    private Window? _embeddedWindow;
 
     public MainWindow(MainViewModel viewModel, IUpdateService updateService)
     {
@@ -46,8 +47,7 @@ public partial class MainWindow
     private void Settings_Click(object sender, RoutedEventArgs e)
     {
         var settings = App.ServiceProvider.GetRequiredService<SettingsWindow>();
-        settings.Owner = this;
-        settings.ShowDialog();
+        ShowOverlay(settings);
     }
 
     private void DismissUpdate_Click(object sender, RoutedEventArgs e) =>
@@ -93,8 +93,7 @@ public partial class MainWindow
         Dispatcher.Invoke(() =>
         {
             var window = App.ServiceProvider.GetRequiredService<SpotifyWindow>();
-            window.Owner = this;
-            window.Show();
+            ShowOverlay(window);
         });
     }
 
@@ -103,9 +102,32 @@ public partial class MainWindow
         Dispatcher.Invoke(() =>
         {
             var window = App.ServiceProvider.GetRequiredService<PlanningWindow>();
-            window.Owner = this;
-            window.Show();
+            ShowOverlay(window);
         });
+    }
+
+    private void ShowOverlay(Window window)
+    {
+        CloseCurrentOverlay();
+        _embeddedWindow = window;
+        var content = window.Content;
+        window.Content = null;
+        OverlayContent.Content = content;
+        OverlayHost.Visibility = Visibility.Visible;
+    }
+
+    private void CloseOverlay_Click(object sender, RoutedEventArgs e)
+    {
+        CloseCurrentOverlay();
+        ViewModel.RefreshSpotifyState();
+        OverlayHost.Visibility = Visibility.Collapsed;
+    }
+
+    private void CloseCurrentOverlay()
+    {
+        OverlayContent.Content = null;
+        _embeddedWindow?.Close();
+        _embeddedWindow = null;
     }
 
     private void Summarize_Click(object sender, RoutedEventArgs e)

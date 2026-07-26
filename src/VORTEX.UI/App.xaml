@@ -12,13 +12,13 @@
             <local:RoleToAlignmentConverter x:Key="RoleToAlignmentConverter"/>
             <local:CountToVisibilityConverter x:Key="CountToVisibilityConverter"/>
 
-            <Color x:Key="VortexBackground">#070A12</Color>
-            <Color x:Key="VortexSurface">#101522</Color>
+            <Color x:Key="VortexBackground">#030303</Color>
+            <Color x:Key="VortexSurface">#0D0D0D</Color>
             <Color x:Key="VortexCyan">#55E6FF</Color>
             <Color x:Key="VortexViolet">#8B7CFF</Color>
             <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource VortexSurface}"/>
             <SolidColorBrush x:Key="VortexBackgroundBrush" Color="{StaticResource VortexBackground}"/>
-            <SolidColorBrush x:Key="MutedTextBrush" Color="#8E99AB"/>
+            <SolidColorBrush x:Key="MutedTextBrush" Color="#A0A0A0"/>
             <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource VortexCyan}"/>
             <Style TargetType="TextBlock">
                 <Setter Property="Foreground" Value="#FFFFFF"/>
@@ -31,13 +31,13 @@
 
             <Style x:Key="PanelStyle" TargetType="Border">
                 <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-                <Setter Property="BorderBrush" Value="#22FFFFFF"/>
+                <Setter Property="BorderBrush" Value="#3A3A3A"/>
                 <Setter Property="BorderThickness" Value="1"/>
                 <Setter Property="CornerRadius" Value="20"/>
             </Style>
             <Style x:Key="NavButtonStyle" TargetType="Button">
                 <Setter Property="Background" Value="Transparent"/>
-                <Setter Property="Foreground" Value="#AEB8C8"/>
+                <Setter Property="Foreground" Value="#D0D0D0"/>
                 <Setter Property="BorderThickness" Value="0"/>
                 <Setter Property="HorizontalContentAlignment" Value="Left"/>
                 <Setter Property="Padding" Value="16,12"/>

@@ -52,6 +52,11 @@ namespace VORTEX.Services
             var primary = configs.FirstOrDefault(c => c.IsPrimary) ?? configs.FirstOrDefault();
             
             if (primary == null) return "Nenhum provedor de IA configurado.";
+            if (string.IsNullOrWhiteSpace(primary.ApiKey))
+                return $"A chave de {primary.ProviderName} não pôde ser carregada. Abra Configurações → Inteligência artificial e salve uma chave nova.";
+            if (primary.ProviderName.Equals("OpenRouter", StringComparison.OrdinalIgnoreCase)
+                && !primary.ApiKey.StartsWith("sk-or-", StringComparison.Ordinal))
+                return "A configuração do OpenRouter contém uma credencial de outro provedor. Abra Configurações → Inteligência artificial, cole uma chave OpenRouter nova e salve.";
 
             var provider = _providers.FirstOrDefault(p => p.Name == primary.ProviderName);
             if (provider == null) return "Provedor configurado não encontrado.";

@@ -45,11 +45,28 @@
                         Click="AddObjective_Click" Padding="16,10" Margin="10,0,0,0"
                         Background="#7C4DFF" Foreground="#FFFFFF"/>
             </Grid>
-            <TextBox Grid.Row="2" x:Name="Editor" AcceptsReturn="True"
-                     AcceptsTab="True" VerticalScrollBarVisibility="Auto"
-                     TextWrapping="Wrap" FontFamily="Consolas" FontSize="14"
-                     Background="#101522" Foreground="#FFFFFF" CaretBrush="#55E6FF"
-                     BorderBrush="#28344A" Padding="20"/>
+            <TabControl Grid.Row="2" Background="#080808" Foreground="#FFFFFF"
+                        BorderBrush="#3A3A3A">
+                <TabItem Header="Documento">
+                    <TextBox x:Name="Editor" AcceptsReturn="True"
+                             AcceptsTab="True" VerticalScrollBarVisibility="Auto"
+                             TextWrapping="Wrap" FontFamily="Consolas" FontSize="14"
+                             Background="#090909" Foreground="#FFFFFF" CaretBrush="#FFFFFF"
+                             BorderBrush="#333333" Padding="20"/>
+                </TabItem>
+                <TabItem Header="Árvore de objetivos">
+                    <TreeView x:Name="ObjectiveTree" Background="#080808"
+                              Foreground="#FFFFFF" BorderThickness="0" Padding="20"/>
+                </TabItem>
+                <TabItem Header="Pontos interligados">
+                    <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                  VerticalScrollBarVisibility="Auto"
+                                  Background="#080808">
+                        <Canvas x:Name="ObjectiveGraph" Width="900" Height="620"
+                                Background="#080808"/>
+                    </ScrollViewer>
+                </TabItem>
+            </TabControl>
             <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right"
                         Margin="0,16,0,0">
                 <TextBlock x:Name="SaveStatus" Foreground="#8E99AB"

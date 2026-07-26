@@ -41,7 +41,8 @@ public sealed class SpotifyService : ISpotifyService
         var challenge = Base64Url(SHA256.HashData(Encoding.ASCII.GetBytes(verifier)));
         var state = Base64Url(RandomNumberGenerator.GetBytes(18));
         var scopes = Uri.EscapeDataString(
-            "user-read-private user-read-email user-read-playback-state user-modify-playback-state");
+            "user-read-private user-read-email user-read-playback-state user-read-currently-playing " +
+            "user-modify-playback-state playlist-read-private user-library-read user-top-read user-read-recently-played");
         var url =
             $"https://accounts.spotify.com/authorize?client_id={Uri.EscapeDataString(_clientId)}" +
             $"&response_type=code&redirect_uri={Uri.EscapeDataString(RedirectUri)}" +
@@ -107,9 +108,42 @@ public sealed class SpotifyService : ISpotifyService
                      && artists.GetArrayLength() > 0
             ? artists[0].GetProperty("name").GetString() ?? string.Empty
             : string.Empty;
+        JsonElement albumObject = default;
+        var album = item.ValueKind != JsonValueKind.Undefined
+                    && item.TryGetProperty("album", out albumObject)
+            ? albumObject.GetProperty("name").GetString() ?? string.Empty
+            : string.Empty;
+        var imageUrl = albumObject.ValueKind != JsonValueKind.Undefined
+                       && albumObject.TryGetProperty("images", out var images)
+                       && images.GetArrayLength() > 0
+            ? images[0].GetProperty("url").GetString() ?? string.Empty
+            : string.Empty;
         var playing = root.TryGetProperty("is_playing", out var isPlaying)
                       && isPlaying.GetBoolean();
-        return State = new(true, userName, track, artist, playing);
+        var progress = root.TryGetProperty("progress_ms", out var progressElement)
+                       && progressElement.ValueKind == JsonValueKind.Number
+            ? progressElement.GetInt32()
+            : 0;
+        var duration = item.ValueKind != JsonValueKind.Undefined
+                       && item.TryGetProperty("duration_ms", out var durationElement)
+            ? durationElement.GetInt32()
+            : 0;
+        var deviceName = root.TryGetProperty("device", out var device)
+            ? device.GetProperty("name").GetString() ?? string.Empty
+            : string.Empty;
+        var volume = device.ValueKind != JsonValueKind.Undefined
+                     && device.TryGetProperty("volume_percent", out var volumeElement)
+                     && volumeElement.ValueKind == JsonValueKind.Number
+            ? volumeElement.GetInt32()
+            : 0;
+        var shuffle = root.TryGetProperty("shuffle_state", out var shuffleElement)
+                      && shuffleElement.GetBoolean();
+        var repeat = root.TryGetProperty("repeat_state", out var repeatElement)
+            ? repeatElement.GetString() ?? "off"
+            : "off";
+        return State = new(
+            true, userName, track, artist, playing, album, imageUrl,
+            progress, duration, volume, deviceName, shuffle, repeat);
     }
 
     public async Task PlaybackAsync(
@@ -137,6 +171,73 @@ public sealed class SpotifyService : ISpotifyService
         _accessToken = null;
         _refreshToken = null;
         State = new(false, "Não conectado", "Nenhuma música", string.Empty, false);
+    }
+
+    public Task SetVolumeAsync(int volume, CancellationToken cancellationToken = default) =>
+        PutQueryAsync("volume", $"volume_percent={Math.Clamp(volume, 0, 100)}", cancellationToken);
+
+    public Task SeekAsync(int positionMs, CancellationToken cancellationToken = default) =>
+        PutQueryAsync("seek", $"position_ms={Math.Max(0, positionMs)}", cancellationToken);
+
+    public Task SetShuffleAsync(bool enabled, CancellationToken cancellationToken = default) =>
+        PutQueryAsync("shuffle", $"state={enabled.ToString().ToLowerInvariant()}", cancellationToken);
+
+    public Task SetRepeatAsync(string mode, CancellationToken cancellationToken = default) =>
+        PutQueryAsync("repeat", $"state={Uri.EscapeDataString(mode)}", cancellationToken);
+
+    public async Task<IReadOnlyList<string>> GetLibraryAsync(
+        string section, CancellationToken cancellationToken = default)
+    {
+        var url = section switch
+        {
+            "playlists" => "https://api.spotify.com/v1/me/playlists?limit=30",
+            "liked" => "https://api.spotify.com/v1/me/tracks?limit=30",
+            "albums" => "https://api.spotify.com/v1/me/albums?limit=30",
+            "artists" => "https://api.spotify.com/v1/me/top/artists?limit=30",
+            _ => "https://api.spotify.com/v1/me/player/recently-played?limit=30"
+        };
+        using var document = await GetJsonAsync(url, cancellationToken);
+        if (!document.RootElement.TryGetProperty("items", out var items)) return [];
+        return items.EnumerateArray().Select(item =>
+        {
+            var value = item;
+            if (item.TryGetProperty("track", out var track)) value = track;
+            else if (item.TryGetProperty("album", out var album)) value = album;
+            return value.TryGetProperty("name", out var name)
+                ? name.GetString() ?? "Item"
+                : value.TryGetProperty("context", out var context)
+                  && context.TryGetProperty("type", out var type)
+                    ? type.GetString() ?? "Item"
+                    : "Item";
+        }).ToList();
+    }
+
+    public async Task<IReadOnlyList<string>> SearchAsync(
+        string query, CancellationToken cancellationToken = default)
+    {
+        using var document = await GetJsonAsync(
+            $"https://api.spotify.com/v1/search?q={Uri.EscapeDataString(query)}&type=track,artist,album,playlist&limit=8",
+            cancellationToken);
+        var results = new List<string>();
+        foreach (var collection in new[] { "tracks", "artists", "albums", "playlists" })
+            if (document.RootElement.TryGetProperty(collection, out var group)
+                && group.TryGetProperty("items", out var items))
+                results.AddRange(items.EnumerateArray()
+                    .Where(item => item.ValueKind != JsonValueKind.Null
+                                   && item.TryGetProperty("name", out _))
+                    .Select(item => $"{collection}: {item.GetProperty("name").GetString()}"));
+        return results;
+    }
+
+    private async Task PutQueryAsync(
+        string endpoint, string query, CancellationToken cancellationToken)
+    {
+        using var request = Authorized(
+            HttpMethod.Put, $"https://api.spotify.com/v1/me/player/{endpoint}?{query}");
+        request.Content = new StringContent(string.Empty);
+        using var response = await Http.SendAsync(request, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        await RefreshAsync(cancellationToken);
     }
 
     private async Task<JsonDocument> GetJsonAsync(

@@ -12,6 +12,7 @@ public partial class MainViewModel : ObservableObject
     private readonly IDesktopCommandService _desktopCommands;
     private readonly IWorkspaceService _workspaceService;
     private readonly IPlanningService _planningService;
+    private readonly ISpotifyService _spotifyService;
 
     [ObservableProperty] private string _userName = "Você";
     [ObservableProperty] private string _status = "Online";
@@ -28,6 +29,9 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private string _responseTime = "—";
     [ObservableProperty] private bool _hasPendingChanges;
     [ObservableProperty] private string _globalSearch = string.Empty;
+    [ObservableProperty] private string _spotifyTrack = "Spotify desconectado";
+    [ObservableProperty] private string _spotifyArtist = "Conecte pelo painel";
+    [ObservableProperty] private bool _spotifyIsPlaying;
 
     public ObservableCollection<ChatMessage> Messages { get; } = [];
     public ObservableCollection<string> WorkspaceFiles { get; } = [];
@@ -41,13 +45,15 @@ public partial class MainViewModel : ObservableObject
         IDatabaseService dbService,
         IDesktopCommandService desktopCommands,
         IWorkspaceService workspaceService,
-        IPlanningService planningService)
+        IPlanningService planningService,
+        ISpotifyService spotifyService)
     {
         _aiService = aiService;
         _dbService = dbService;
         _desktopCommands = desktopCommands;
         _workspaceService = workspaceService;
         _planningService = planningService;
+        _spotifyService = spotifyService;
         ApplyWorkspace(_workspaceService.Current);
         _ = InitializeAsync();
     }
@@ -84,6 +90,48 @@ public partial class MainViewModel : ObservableObject
             {
                 SpotifyPanelRequested?.Invoke();
                 await AddAssistantReplyAsync("Painel do Spotify aberto.");
+                Status = "Online";
+                return;
+            }
+            if (System.Text.RegularExpressions.Regex.IsMatch(
+                    prompt, @"\b(?:pause|pausar|pare a música)\b",
+                    System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+            {
+                await _spotifyService.PlaybackAsync("pause");
+                RefreshSpotifyState();
+                await AddAssistantReplyAsync("Spotify pausado.");
+                Status = "Online";
+                return;
+            }
+            if (System.Text.RegularExpressions.Regex.IsMatch(
+                    prompt, @"\b(?:pule|próxima música|proxima musica)\b",
+                    System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+            {
+                await _spotifyService.PlaybackAsync("next");
+                RefreshSpotifyState();
+                await AddAssistantReplyAsync("Avancei para a próxima música.");
+                Status = "Online";
+                return;
+            }
+            var volumeMatch = System.Text.RegularExpressions.Regex.Match(
+                prompt, @"volume\s+(?:para\s+)?(?<volume>\d{1,3})",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            if (volumeMatch.Success)
+            {
+                var volume = Math.Clamp(int.Parse(volumeMatch.Groups["volume"].Value), 0, 100);
+                await _spotifyService.SetVolumeAsync(volume);
+                RefreshSpotifyState();
+                await AddAssistantReplyAsync($"Volume do Spotify ajustado para {volume}%.");
+                Status = "Online";
+                return;
+            }
+            if (System.Text.RegularExpressions.Regex.IsMatch(
+                    prompt, @"\b(?:continue a reprodução|continue a reproducao|retome|tocar música)\b",
+                    System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+            {
+                await _spotifyService.PlaybackAsync("play");
+                RefreshSpotifyState();
+                await AddAssistantReplyAsync("Reprodução do Spotify retomada.");
                 Status = "Online";
                 return;
             }
@@ -149,6 +197,31 @@ public partial class MainViewModel : ObservableObject
         Messages.Add(reply);
         LastAssistantMessage = content;
         await _dbService.SaveChatMessageAsync(reply);
+    }
+
+    public void RefreshSpotifyState()
+    {
+        var state = _spotifyService.State;
+        SpotifyTrack = state.Track;
+        SpotifyArtist = string.IsNullOrWhiteSpace(state.Artist)
+            ? (state.IsConnected ? state.UserName : "Conecte pelo painel")
+            : state.Artist;
+        SpotifyIsPlaying = state.IsPlaying;
+    }
+
+    [RelayCommand]
+    private async Task SpotifyPlayPauseAsync()
+    {
+        await _spotifyService.PlaybackAsync(
+            _spotifyService.State.IsPlaying ? "pause" : "play");
+        RefreshSpotifyState();
+    }
+
+    [RelayCommand]
+    private async Task SpotifyNextAsync()
+    {
+        await _spotifyService.PlaybackAsync("next");
+        RefreshSpotifyState();
     }
 
     partial void OnUserInputChanged(string value)

@@ -12,6 +12,8 @@ namespace VORTEX.ViewModels
     {
         private readonly IAIProviderService _aiService;
         private readonly IDatabaseService _dbService;
+        private List<AIProviderConfig> _savedProviders = [];
+        private bool _loadingProvider;
 
         [ObservableProperty] private string _name = string.Empty;
         [ObservableProperty] private string _apiKey = string.Empty;
@@ -40,8 +42,9 @@ namespace VORTEX.ViewModels
             LoadExistingConfig();
         }
 
-        partial void OnSelectedProviderChanged(string value)
+        async partial void OnSelectedProviderChanged(string value)
         {
+            if (_loadingProvider) return;
             SelectedModel = value switch
             {
                 "OpenRouter" => "openrouter/free",
@@ -49,6 +52,18 @@ namespace VORTEX.ViewModels
                 "OpenAI" => "gpt-4.1-mini",
                 _ => SelectedModel
             };
+            if (_savedProviders.Count == 0)
+                _savedProviders = await _dbService.GetAIProvidersAsync();
+            var saved = _savedProviders.FirstOrDefault(provider =>
+                provider.ProviderName.Equals(value, StringComparison.OrdinalIgnoreCase));
+            ApiKey = saved != null && IsCredentialCompatible(value, saved.ApiKey)
+                ? saved.ApiKey
+                : string.Empty;
+            if (saved != null)
+            {
+                SelectedModel = saved.Model;
+                AutoFallback = saved.AutoFallback;
+            }
         }
 
         private async void LoadExistingConfig()
@@ -56,14 +71,22 @@ namespace VORTEX.ViewModels
             var profile = await _dbService.GetUserProfileAsync();
             if (profile != null) Name = profile.Name;
 
-            var providers = await _dbService.GetAIProvidersAsync();
-            var primary = providers.FirstOrDefault(p => p.IsPrimary) ?? providers.FirstOrDefault();
+            _savedProviders = await _dbService.GetAIProvidersAsync();
+            var primary = _savedProviders.FirstOrDefault(p => p.IsPrimary)
+                          ?? _savedProviders.FirstOrDefault();
             if (primary != null)
             {
+                _loadingProvider = true;
                 SelectedProvider = primary.ProviderName;
-                ApiKey = primary.ApiKey;
+                ApiKey = IsCredentialCompatible(primary.ProviderName, primary.ApiKey)
+                    ? primary.ApiKey
+                    : string.Empty;
+                if (string.IsNullOrWhiteSpace(ApiKey))
+                    ConnectionStatus =
+                        $"A credencial salva não pertence ao {primary.ProviderName}. Cole uma chave nova.";
                 SelectedModel = primary.Model;
                 AutoFallback = primary.AutoFallback;
+                _loadingProvider = false;
             }
         }
 
@@ -73,6 +96,11 @@ namespace VORTEX.ViewModels
             if (string.IsNullOrWhiteSpace(ApiKey))
             {
                 ConnectionStatus = "Insira uma API Key para testar.";
+                return;
+            }
+            if (!IsCredentialCompatible(SelectedProvider, ApiKey))
+            {
+                ConnectionStatus = CredentialMessage(SelectedProvider);
                 return;
             }
 
@@ -89,6 +117,11 @@ namespace VORTEX.ViewModels
             if (string.IsNullOrWhiteSpace(Name))
             {
                 ConnectionStatus = "Por favor, insira seu nome.";
+                return;
+            }
+            if (!IsCredentialCompatible(SelectedProvider, ApiKey))
+            {
+                ConnectionStatus = CredentialMessage(SelectedProvider);
                 return;
             }
 
@@ -119,6 +152,16 @@ namespace VORTEX.ViewModels
                     IsPrimary = true,
                     AutoFallback = AutoFallback
                 });
+                _savedProviders.RemoveAll(provider =>
+                    provider.ProviderName.Equals(SelectedProvider, StringComparison.OrdinalIgnoreCase));
+                _savedProviders.Add(new AIProviderConfig
+                {
+                    ProviderName = SelectedProvider,
+                    ApiKey = ApiKey,
+                    Model = SelectedModel,
+                    IsPrimary = true,
+                    AutoFallback = AutoFallback
+                });
 
                 ConnectionStatus = "✓ Configuração salva com segurança.";
                 OnSetupComplete?.Invoke();
@@ -133,5 +176,24 @@ namespace VORTEX.ViewModels
                 IsBusy = false;
             }
         }
+
+        private static bool IsCredentialCompatible(string provider, string key) =>
+            provider switch
+            {
+                "OpenRouter" => key.StartsWith("sk-or-", StringComparison.Ordinal),
+                "Groq" => key.StartsWith("gsk_", StringComparison.Ordinal),
+                "OpenAI" => key.StartsWith("sk-", StringComparison.Ordinal)
+                            && !key.StartsWith("sk-or-", StringComparison.Ordinal),
+                _ => !string.IsNullOrWhiteSpace(key)
+            };
+
+        private static string CredentialMessage(string provider) =>
+            provider switch
+            {
+                "OpenRouter" => "A chave do OpenRouter deve começar com sk-or-. Cole uma chave nova.",
+                "Groq" => "A chave da Groq deve começar com gsk_.",
+                "OpenAI" => "Informe uma chave válida da OpenAI.",
+                _ => $"Informe uma chave válida para {provider}."
+            };
     }
 }
