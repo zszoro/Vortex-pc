@@ -52,9 +52,25 @@ public partial class VortexCore : UserControl
         {
             "Ghost" => 0.62,
             "Minimal" => 0.86,
+            "Vortex Black" => 0.76,
             _ => 1
         };
-        PetGlow.BlurRadius = appearance == "Cyber" ? 32 : 22;
+        PetGlow.BlurRadius = appearance switch
+        {
+            "Cyber" => 32,
+            "Vortex Neon" => 42,
+            "Vortex Plasma" => 34,
+            "Vortex Galaxy" => 48,
+            "Vortex Black" => 12,
+            _ => 22
+        };
+        PetGlow.Opacity = appearance switch
+        {
+            "Vortex Neon" => 1,
+            "Vortex Galaxy" => 0.95,
+            "Vortex Black" => 0.42,
+            _ => 0.74
+        };
     }
 
     private void UpdateState(string state)

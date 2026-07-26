@@ -35,8 +35,10 @@ O modo Workspace transforma o chat em um agente de desenvolvimento:
 - Verificação de versão por manifesto do GitHub.
 - Avisos de atualização na tela principal e nas configurações.
 - Resolução de aplicativos pelo registro do Windows e pastas de instalação.
-- Temas Vortex, Nebula, Oceano e Claro.
-- Aparências Orb, Cyber, Minimal e Ghost para o núcleo.
+- Temas Black, Vortex, Nebula, Oceano e Claro.
+- Aparências Vortex, Vortex Black, Neon, Plasma, Galaxy, Cyber, Minimal e Ghost.
+- Respostas faladas automaticamente, mute e ditado por microfone.
+- Contas locais com cadastro, login, nome e avatar.
 - Ações de copiar, mencionar e regenerar em cada mensagem.
 - Ferramentas laterais para arquivos, terminal, memória, automações e resumo.
 - Verificação de atualização periódica sem reiniciar o aplicativo.

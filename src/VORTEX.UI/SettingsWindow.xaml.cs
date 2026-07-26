@@ -56,7 +56,7 @@ public partial class SettingsWindow : Window
     private void ThemeChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!IsLoaded || ThemeCombo.SelectedItem is not ComboBoxItem item) return;
-        _preferences.Theme = item.Content?.ToString() ?? "Vortex";
+        _preferences.Theme = item.Content?.ToString() ?? "Black";
         UiPreferences.ApplyTheme(_preferences.Theme);
         _preferences.Save();
     }
@@ -64,7 +64,7 @@ public partial class SettingsWindow : Window
     private void AppearanceChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!IsLoaded || AppearanceCombo.SelectedItem is not ComboBoxItem item) return;
-        _preferences.PetAppearance = item.Content?.ToString() ?? "Orb";
+        _preferences.PetAppearance = item.Content?.ToString() ?? "Vortex";
         _mainViewModel.PetAppearance = _preferences.PetAppearance;
         _preferences.Save();
         MessageBox.Show(this,

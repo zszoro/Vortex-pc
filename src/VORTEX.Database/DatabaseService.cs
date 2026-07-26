@@ -46,6 +46,15 @@ public sealed class DatabaseService : IDatabaseService
                 Content TEXT NOT NULL,
                 CreatedAt TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS Accounts (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                Email TEXT NOT NULL UNIQUE COLLATE NOCASE,
+                Name TEXT NOT NULL,
+                PasswordHash TEXT NOT NULL,
+                AvatarPath TEXT NOT NULL DEFAULT '',
+                IsActive INTEGER NOT NULL DEFAULT 0,
+                CreatedAt TEXT NOT NULL
+            );
             """);
         var columns = (await connection.QueryAsync<string>(
             "SELECT name FROM pragma_table_info('AIProviders')"))
@@ -159,6 +168,57 @@ public sealed class DatabaseService : IDatabaseService
     {
         await using var connection = new SqliteConnection(_connectionString);
         await connection.ExecuteAsync("DELETE FROM ChatMessages");
+    }
+
+    public async Task<LocalAccount?> GetActiveAccountAsync()
+    {
+        await using var connection = new SqliteConnection(_connectionString);
+        return await connection.QueryFirstOrDefaultAsync<LocalAccount>(
+            "SELECT * FROM Accounts WHERE IsActive = 1 LIMIT 1");
+    }
+
+    public async Task<LocalAccount?> GetAccountByEmailAsync(string email)
+    {
+        await using var connection = new SqliteConnection(_connectionString);
+        return await connection.QueryFirstOrDefaultAsync<LocalAccount>(
+            "SELECT * FROM Accounts WHERE Email = @Email COLLATE NOCASE LIMIT 1",
+            new { Email = email.Trim() });
+    }
+
+    public async Task<long> CreateAccountAsync(LocalAccount account)
+    {
+        await using var connection = new SqliteConnection(_connectionString);
+        await connection.OpenAsync();
+        await using var transaction = await connection.BeginTransactionAsync();
+        await connection.ExecuteAsync("UPDATE Accounts SET IsActive = 0", transaction: transaction);
+        var id = await connection.ExecuteScalarAsync<long>("""
+            INSERT INTO Accounts (Email, Name, PasswordHash, AvatarPath, IsActive, CreatedAt)
+            VALUES (@Email, @Name, @PasswordHash, @AvatarPath, 1, @CreatedAt);
+            SELECT last_insert_rowid();
+            """, account, transaction);
+        await transaction.CommitAsync();
+        return id;
+    }
+
+    public async Task SetActiveAccountAsync(long? accountId)
+    {
+        await using var connection = new SqliteConnection(_connectionString);
+        await connection.OpenAsync();
+        await using var transaction = await connection.BeginTransactionAsync();
+        await connection.ExecuteAsync("UPDATE Accounts SET IsActive = 0", transaction: transaction);
+        if (accountId.HasValue)
+            await connection.ExecuteAsync(
+                "UPDATE Accounts SET IsActive = 1 WHERE Id = @Id",
+                new { Id = accountId.Value }, transaction);
+        await transaction.CommitAsync();
+    }
+
+    public async Task UpdateAccountProfileAsync(long accountId, string name, string avatarPath)
+    {
+        await using var connection = new SqliteConnection(_connectionString);
+        await connection.ExecuteAsync(
+            "UPDATE Accounts SET Name = @Name, AvatarPath = @AvatarPath WHERE Id = @Id",
+            new { Id = accountId, Name = name, AvatarPath = avatarPath });
     }
 
     private static string Protect(string value)

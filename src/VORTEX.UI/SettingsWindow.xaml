@@ -34,6 +34,7 @@
                               Padding="4" Margin="0,0,0,12"/>
                     <TextBlock Text="Tema do aplicativo" FontWeight="SemiBold" Margin="0,12,0,7"/>
                     <ComboBox x:Name="ThemeCombo" SelectionChanged="ThemeChanged" Padding="8">
+                        <ComboBoxItem Content="Black"/>
                         <ComboBoxItem Content="Vortex"/>
                         <ComboBoxItem Content="Nebula"/>
                         <ComboBoxItem Content="Oceano"/>
@@ -41,7 +42,11 @@
                     </ComboBox>
                     <TextBlock Text="Aparência do núcleo" FontWeight="SemiBold" Margin="0,18,0,7"/>
                     <ComboBox x:Name="AppearanceCombo" SelectionChanged="AppearanceChanged" Padding="8">
-                        <ComboBoxItem Content="Orb"/>
+                        <ComboBoxItem Content="Vortex"/>
+                        <ComboBoxItem Content="Vortex Black"/>
+                        <ComboBoxItem Content="Vortex Neon"/>
+                        <ComboBoxItem Content="Vortex Plasma"/>
+                        <ComboBoxItem Content="Vortex Galaxy"/>
                         <ComboBoxItem Content="Cyber"/>
                         <ComboBoxItem Content="Minimal"/>
                         <ComboBoxItem Content="Ghost"/>
@@ -58,7 +63,7 @@
                         <StackPanel>
                             <TextBlock x:Name="UpdateTitle" Text="Verificando atualizações..."
                                        FontSize="17" FontWeight="SemiBold"/>
-                            <TextBlock x:Name="UpdateVersion" Text="Versão instalada: 1.5.0"
+                            <TextBlock x:Name="UpdateVersion" Text="Versão instalada: 1.7.0"
                                        Foreground="#55E6FF" Margin="0,7,0,0"/>
                             <TextBlock x:Name="UpdateNotes" Text="Consultando o manifesto do projeto."
                                        Foreground="#9AA5B7" TextWrapping="Wrap" Margin="0,12,0,0"/>

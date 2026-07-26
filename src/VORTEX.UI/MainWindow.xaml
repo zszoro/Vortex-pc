@@ -15,14 +15,14 @@
             <Setter Property="Margin" Value="0,7"/>
             <Setter Property="MaxWidth" Value="700"/>
             <Setter Property="HorizontalAlignment" Value="Left"/>
-            <Setter Property="Background" Value="#111111"/>
-            <Setter Property="BorderBrush" Value="#3A3A3A"/>
+            <Setter Property="Background" Value="#CC111111"/>
+            <Setter Property="BorderBrush" Value="#383838"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding Role}" Value="Você">
                     <Setter Property="HorizontalAlignment" Value="Right"/>
-                    <Setter Property="Background" Value="#CC253349"/>
-                    <Setter Property="BorderBrush" Value="#5555E6FF"/>
+                    <Setter Property="Background" Value="#CC171717"/>
+                    <Setter Property="BorderBrush" Value="#424242"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -73,16 +73,17 @@
             </Ellipse.Fill>
         </Ellipse>
 
-        <Grid Margin="20,42,20,20">
+        <Grid Margin="0,32,0,0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="230"/>
-                <ColumnDefinition Width="18"/>
+                <ColumnDefinition Width="245"/>
+                <ColumnDefinition Width="0"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="18"/>
-                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="0"/>
+                <ColumnDefinition Width="315"/>
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0" Style="{StaticResource PanelStyle}" Padding="16">
+            <Border Grid.Column="0" Background="#000000" BorderBrush="#333333"
+                    BorderThickness="0,0,1,0" CornerRadius="0" Padding="16">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -105,6 +106,22 @@
                         <Button Content="+  Nova conversa" Click="NewConversation_Click"
                                 Background="#1E55E6FF" Foreground="#DFFAFF" BorderBrush="#4455E6FF"
                                 BorderThickness="1" Padding="14,11" Margin="0,0,0,10"/>
+                        <Border Background="#000000" BorderBrush="#353535" BorderThickness="1"
+                                CornerRadius="10" Padding="10,7" Margin="0,0,0,10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="⌕" FontSize="18" Foreground="#A0A0A0"
+                                           VerticalAlignment="Center" Margin="2,0,8,0"/>
+                                <TextBox Grid.Column="1" x:Name="ConversationSearch"
+                                         Background="Transparent" BorderThickness="0"
+                                         Foreground="White" CaretBrush="White"
+                                         ToolTip="Pesquisar conversas"
+                                         TextChanged="ConversationSearch_TextChanged"/>
+                            </Grid>
+                        </Border>
                         <Border Background="#101B2B" CornerRadius="10" Padding="10">
                             <StackPanel>
                                 <TextBlock Text="WORKSPACE" FontSize="8" Foreground="#55E6FF"
@@ -162,7 +179,9 @@
                     </StackPanel>
                     </ScrollViewer>
 
-                    <Border Grid.Row="3" Background="#0EFFFFFF" CornerRadius="14" Padding="12">
+                    <Border Grid.Row="3" Background="#0EFFFFFF" CornerRadius="14" Padding="12"
+                            Cursor="Hand" MouseLeftButtonUp="Account_Click"
+                            ToolTip="Abrir conta e perfil">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
@@ -181,7 +200,7 @@
                 </Grid>
             </Border>
 
-            <Border Grid.Column="2" Style="{StaticResource PanelStyle}">
+            <Border Grid.Column="2" Background="#000000" BorderThickness="0" CornerRadius="0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="104"/>
@@ -245,7 +264,7 @@
 
                         <ListView x:Name="MessageList" ItemsSource="{Binding Messages}" Background="Transparent"
                                   BorderThickness="0" Padding="34,14"
-                                  ScrollViewer.CanContentScroll="True"
+                                  ScrollViewer.CanContentScroll="False"
                                   ScrollViewer.PanningMode="VerticalOnly"
                                   ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                             <ListView.ItemContainerStyle>
@@ -254,6 +273,15 @@
                                     <Setter Property="Background" Value="Transparent"/>
                                     <Setter Property="BorderThickness" Value="0"/>
                                     <Setter Property="Focusable" Value="False"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ListViewItem">
+                                                <Border Background="Transparent" Padding="0">
+                                                    <ContentPresenter/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
                                 </Style>
                             </ListView.ItemContainerStyle>
                             <ListView.ItemTemplate>
@@ -290,6 +318,8 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
@@ -301,7 +331,17 @@
                                         Width="42" Height="42" FontSize="20" Padding="0"
                                         ToolTip="Comandos do VORTEX" ToolTipService.InitialShowDelay="1000"
                                         Click="SlashCommand_Click"/>
-                                <TextBox Grid.Column="2" x:Name="ChatInput" Text="{Binding UserInput, UpdateSourceTrigger=PropertyChanged}"
+                                <Button Grid.Column="2" x:Name="MicrophoneButton" Content="●"
+                                        Style="{StaticResource HoverCardButton}" Width="42" Height="42"
+                                        FontSize="16" Foreground="#FFFFFF"
+                                        ToolTip="Falar com o VORTEX" ToolTipService.InitialShowDelay="1000"
+                                        Click="Microphone_Click"/>
+                                <Button Grid.Column="3" x:Name="MuteVoiceButton" Content="◖"
+                                        Style="{StaticResource HoverCardButton}" Width="42" Height="42"
+                                        FontSize="18" Foreground="#FFFFFF"
+                                        ToolTip="Mutar voz da IA" ToolTipService.InitialShowDelay="1000"
+                                        Click="MuteVoice_Click"/>
+                                <TextBox Grid.Column="4" x:Name="ChatInput" Text="{Binding UserInput, UpdateSourceTrigger=PropertyChanged}"
                                          Background="Transparent" Foreground="#F3F6FC" CaretBrush="#55E6FF"
                                          BorderThickness="0" Padding="15,12" FontSize="14"
                                          VerticalContentAlignment="Center" AcceptsReturn="False">
@@ -309,7 +349,7 @@
                                         <KeyBinding Key="Enter" Command="{Binding SendMessageCommand}"/>
                                     </TextBox.InputBindings>
                                 </TextBox>
-                                <Button Grid.Column="3" Content="↑" Command="{Binding SendMessageCommand}"
+                                <Button Grid.Column="5" Content="↑" Command="{Binding SendMessageCommand}"
                                         Width="43" Height="43" Margin="4" FontSize="21" FontWeight="Bold"
                                         Foreground="White" Background="#7C3AED" BorderThickness="0">
                                     <Button.Template>
@@ -349,7 +389,8 @@
                 </Grid>
             </Border>
 
-            <Border Grid.Column="4" Style="{StaticResource PanelStyle}" Padding="14">
+            <Border Grid.Column="4" Background="#000000" BorderBrush="#333333"
+                    BorderThickness="1,0,0,0" CornerRadius="0" Padding="14">
                 <TabControl Background="Transparent" Foreground="#FFFFFF">
                     <TabItem Header="Explorador">
                         <Grid Margin="0,12,0,0">

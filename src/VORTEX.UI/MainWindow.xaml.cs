@@ -9,6 +9,12 @@ using Microsoft.Win32;
 using System.Runtime.InteropServices;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Collections.Specialized;
+using System.Globalization;
+using System.Speech.Recognition;
+using System.Speech.Synthesis;
+using System.Text.RegularExpressions;
+using System.Windows.Data;
 
 namespace VORTEX.UI;
 
@@ -21,6 +27,10 @@ public partial class MainWindow
     private AppUpdateInfo? _updateInfo;
     private readonly DispatcherTimer _updateTimer;
     private Window? _embeddedWindow;
+    private readonly SpeechSynthesizer _speech = new();
+    private SpeechRecognitionEngine? _recognizer;
+    private bool _voiceMuted;
+    private bool _isListening;
 
     public MainWindow(MainViewModel viewModel, IUpdateService updateService)
     {
@@ -30,15 +40,29 @@ public partial class MainWindow
         viewModel.SpotifyPanelRequested += OpenSpotifyPanel;
         viewModel.PlanningPanelRequested += OpenPlanningPanel;
         Loaded += async (_, _) => await CheckForUpdatesAsync();
+        Loaded += (_, _) => viewModel.Messages.CollectionChanged += Messages_CollectionChanged;
         _updateTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(3) };
         _updateTimer.Tick += async (_, _) => await CheckForUpdatesAsync();
         _updateTimer.Start();
         Closed += (_, _) => _updateTimer.Stop();
         Closed += (_, _) =>
         {
+            viewModel.Messages.CollectionChanged -= Messages_CollectionChanged;
             viewModel.SpotifyPanelRequested -= OpenSpotifyPanel;
             viewModel.PlanningPanelRequested -= OpenPlanningPanel;
+            _recognizer?.Dispose();
+            _speech.Dispose();
         };
+    }
+
+    private void Messages_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (_voiceMuted || e.NewItems is null) return;
+        var reply = e.NewItems.OfType<ChatMessage>().LastOrDefault(item => item.Role == "VORTEX");
+        if (reply == null) return;
+        var spokenText = Regex.Replace(reply.Content, @"[`*_#>\[\]()]", " ");
+        _speech.SpeakAsyncCancelAll();
+        _speech.SpeakAsync(spokenText);
     }
 
     private async Task CheckForUpdatesAsync()
@@ -54,6 +78,12 @@ public partial class MainWindow
     {
         var settings = App.ServiceProvider.GetRequiredService<SettingsWindow>();
         ShowOverlay(settings);
+    }
+
+    private void Account_Click(object sender, MouseButtonEventArgs e)
+    {
+        var account = App.ServiceProvider.GetRequiredService<AccountWindow>();
+        ShowOverlay(account);
     }
 
     private void DismissUpdate_Click(object sender, RoutedEventArgs e) =>
@@ -105,6 +135,82 @@ public partial class MainWindow
         CommandPopup.IsOpen = false;
         ChatInput.Focus();
         ChatInput.CaretIndex = ChatInput.Text.Length;
+    }
+
+    private async void Microphone_Click(object sender, RoutedEventArgs e)
+    {
+        if (_isListening)
+        {
+            _recognizer?.RecognizeAsyncStop();
+            return;
+        }
+
+        try
+        {
+            _recognizer ??= CreateRecognizer();
+            _isListening = true;
+            MicrophoneButton.Content = "■";
+            MicrophoneButton.Foreground = Brushes.Red;
+            MicrophoneButton.ToolTip = "Parar gravação";
+            _recognizer.RecognizeAsync(RecognizeMode.Single);
+        }
+        catch (Exception ex)
+        {
+            _isListening = false;
+            MessageBox.Show(this,
+                $"Não foi possível iniciar o microfone: {ex.Message}",
+                "Voz do VORTEX", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+        await Task.CompletedTask;
+    }
+
+    private SpeechRecognitionEngine CreateRecognizer()
+    {
+        var installed = SpeechRecognitionEngine.InstalledRecognizers();
+        var recognizerInfo = installed.FirstOrDefault(item =>
+                                 item.Culture.Name.Equals("pt-BR", StringComparison.OrdinalIgnoreCase))
+                             ?? installed.FirstOrDefault()
+                             ?? throw new InvalidOperationException(
+                                 "Instale um pacote de reconhecimento de voz nas configurações de idioma do Windows.");
+        var recognizer = new SpeechRecognitionEngine(recognizerInfo);
+        recognizer.LoadGrammar(new DictationGrammar());
+        recognizer.SetInputToDefaultAudioDevice();
+        recognizer.SpeechRecognized += async (_, args) =>
+        {
+            if (args.Result.Confidence < 0.35 || string.IsNullOrWhiteSpace(args.Result.Text)) return;
+            await Dispatcher.InvokeAsync(async () =>
+            {
+                ViewModel.UserInput = args.Result.Text;
+                await ViewModel.SendMessageCommand.ExecuteAsync(null);
+            });
+        };
+        recognizer.RecognizeCompleted += (_, _) => Dispatcher.Invoke(() =>
+        {
+            _isListening = false;
+            MicrophoneButton.Content = "●";
+            MicrophoneButton.Foreground = Brushes.White;
+            MicrophoneButton.ToolTip = "Falar com o VORTEX";
+        });
+        return recognizer;
+    }
+
+    private void MuteVoice_Click(object sender, RoutedEventArgs e)
+    {
+        _voiceMuted = !_voiceMuted;
+        MuteVoiceButton.Content = _voiceMuted ? "×" : "◖";
+        MuteVoiceButton.Foreground = _voiceMuted ? Brushes.Gray : Brushes.White;
+        MuteVoiceButton.ToolTip = _voiceMuted ? "Ativar voz da IA" : "Mutar voz da IA";
+        if (_voiceMuted) _speech.SpeakAsyncCancelAll();
+    }
+
+    private void ConversationSearch_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+    {
+        var query = ConversationSearch.Text.Trim();
+        var view = CollectionViewSource.GetDefaultView(ViewModel.Messages);
+        view.Filter = item => item is ChatMessage message
+                              && (string.IsNullOrWhiteSpace(query)
+                                  || message.Content.Contains(query, StringComparison.OrdinalIgnoreCase));
+        view.Refresh();
     }
 
     private void Terminal_Click(object sender, RoutedEventArgs e)

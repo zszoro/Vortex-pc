@@ -1,6 +1,6 @@
 {
-  "version": "1.5.0",
-  "title": "Atualização VORTEX 1.2 — Workspace",
-  "notes": "Modo agente com autorização por ação, Workspace persistente, indexação inteligente, backups e aplicação segura de alterações.",
+  "version": "1.7.0",
+  "title": "Atualização VORTEX 1.7 — Black Voice",
+  "notes": "Tema Black, rolagem por pixels, voz automática, ditado, contas locais e novas versões do pet VORTEX.",
   "downloadUrl": "https://github.com/zszoro/Vortex-pc/releases"
 }

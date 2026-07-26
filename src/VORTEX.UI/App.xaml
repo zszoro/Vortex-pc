@@ -13,7 +13,7 @@
             <local:CountToVisibilityConverter x:Key="CountToVisibilityConverter"/>
 
             <Color x:Key="VortexBackground">#000000</Color>
-            <Color x:Key="VortexSurface">#0D0D0D</Color>
+            <Color x:Key="VortexSurface">#000000</Color>
             <Color x:Key="VortexCyan">#55E6FF</Color>
             <Color x:Key="VortexViolet">#8B7CFF</Color>
             <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource VortexSurface}"/>
@@ -26,7 +26,7 @@
             <Style TargetType="TextBox">
                 <Setter Property="Foreground" Value="#FFFFFF"/>
                 <Setter Property="CaretBrush" Value="#55E6FF"/>
-                <Setter Property="Background" Value="#101522"/>
+                <Setter Property="Background" Value="#000000"/>
             </Style>
 
             <Style x:Key="PanelStyle" TargetType="Border">
