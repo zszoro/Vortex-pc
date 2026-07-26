@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using VORTEX.Core;
 using VORTEX.ViewModels;
@@ -15,6 +15,8 @@ using System.Speech.Recognition;
 using System.Speech.Synthesis;
 using System.Text.RegularExpressions;
 using System.Windows.Data;
+using SymbolIcon = Wpf.Ui.Controls.SymbolIcon;
+using SymbolRegular = Wpf.Ui.Controls.SymbolRegular;
 
 namespace VORTEX.UI;
 
@@ -149,7 +151,7 @@ public partial class MainWindow
         {
             _recognizer ??= CreateRecognizer();
             _isListening = true;
-            MicrophoneButton.Content = "■";
+            MicrophoneButton.Content = CreateSymbolIcon(SymbolRegular.MicOff24);
             MicrophoneButton.Foreground = Brushes.Red;
             MicrophoneButton.ToolTip = "Parar gravação";
             _recognizer.RecognizeAsync(RecognizeMode.Single);
@@ -187,7 +189,7 @@ public partial class MainWindow
         recognizer.RecognizeCompleted += (_, _) => Dispatcher.Invoke(() =>
         {
             _isListening = false;
-            MicrophoneButton.Content = "●";
+            MicrophoneButton.Content = CreateSymbolIcon(SymbolRegular.Mic24);
             MicrophoneButton.Foreground = Brushes.White;
             MicrophoneButton.ToolTip = "Falar com o VORTEX";
         });
@@ -197,11 +199,14 @@ public partial class MainWindow
     private void MuteVoice_Click(object sender, RoutedEventArgs e)
     {
         _voiceMuted = !_voiceMuted;
-        MuteVoiceButton.Content = _voiceMuted ? "×" : "◖";
+        MuteVoiceButton.Content = CreateSymbolIcon(_voiceMuted ? SymbolRegular.MicOff24 : SymbolRegular.Mic24);
         MuteVoiceButton.Foreground = _voiceMuted ? Brushes.Gray : Brushes.White;
         MuteVoiceButton.ToolTip = _voiceMuted ? "Ativar voz da IA" : "Mutar voz da IA";
         if (_voiceMuted) _speech.SpeakAsyncCancelAll();
     }
+
+    private static SymbolIcon CreateSymbolIcon(SymbolRegular symbol) =>
+        new() { Symbol = symbol, FontSize = 21 };
 
     private void ConversationSearch_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
     {

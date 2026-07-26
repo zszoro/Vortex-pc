@@ -1,6 +1,6 @@
 {
-  "version": "1.7.1",
-  "title": "Atualização VORTEX 1.7.1 — Spotify",
-  "notes": "Novo ícone do Spotify aplicado à navegação, mini player e painel integrado.",
+  "version": "1.7.2",
+  "title": "Atualizacao VORTEX 1.7.2 - Login e chat",
+  "notes": "Novo login preto, botoes brancos, icones maiores, chat com input preto e correcao do salvamento da chave OpenRouter.",
   "downloadUrl": "https://github.com/zszoro/Vortex-pc/releases"
 }

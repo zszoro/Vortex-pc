@@ -114,11 +114,6 @@ namespace VORTEX.ViewModels
         [RelayCommand]
         public async Task FinishSetupAsync()
         {
-            if (string.IsNullOrWhiteSpace(Name))
-            {
-                ConnectionStatus = "Por favor, insira seu nome.";
-                return;
-            }
             if (!IsCredentialCompatible(SelectedProvider, ApiKey))
             {
                 ConnectionStatus = CredentialMessage(SelectedProvider);
@@ -138,7 +133,7 @@ namespace VORTEX.ViewModels
 
                 await _dbService.SaveUserProfileAsync(new UserProfile
                 {
-                    Name = Name,
+                    Name = string.IsNullOrWhiteSpace(Name) ? "zs" : Name.Trim(),
                     IsSetupComplete = true
                 });
 

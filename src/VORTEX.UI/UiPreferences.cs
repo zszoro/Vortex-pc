@@ -35,9 +35,9 @@ public sealed class UiPreferences
     {
         var palette = theme switch
         {
-            "Nebula" => ("#10071B", "#1B102C", "#F472D0", "#B7A4CA"),
-            "Oceano" => ("#04131A", "#0A2530", "#22D3EE", "#91B8C3"),
-            "Claro" => ("#E9EEF7", "#F8FAFD", "#6D4AFF", "#526075"),
+            "Nebula" => ("#000000", "#050505", "#F472D0", "#B7A4CA"),
+            "Oceano" => ("#000000", "#050505", "#22D3EE", "#91B8C3"),
+            "Claro" => ("#000000", "#050505", "#FFFFFF", "#C8CED8"),
             "Vortex" => ("#030303", "#0D0D0D", "#F2F2F2", "#9A9A9A"),
             _ => ("#000000", "#000000", "#FFFFFF", "#A0A0A0")
         };
