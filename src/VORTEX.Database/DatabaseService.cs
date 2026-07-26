@@ -10,13 +10,17 @@ public sealed class DatabaseService : IDatabaseService
 {
     private readonly string _connectionString;
 
-    public DatabaseService()
+    public DatabaseService() : this(Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "VORTEX"))
     {
-        var dbPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "VORTEX", "vortex.db");
+    }
+
+    public DatabaseService(string dataDirectory)
+    {
+        var dbPath = Path.Combine(dataDirectory, "vortex.db");
         Directory.CreateDirectory(Path.GetDirectoryName(dbPath)!);
-        _connectionString = $"Data Source={dbPath}";
+        _connectionString = $"Data Source={dbPath};Pooling=False";
     }
 
     public async Task InitializeAsync()
@@ -64,6 +68,7 @@ public sealed class DatabaseService : IDatabaseService
     public async Task SaveUserProfileAsync(UserProfile profile)
     {
         await using var connection = new SqliteConnection(_connectionString);
+        await connection.OpenAsync();
         await using var transaction = await connection.BeginTransactionAsync();
         await connection.ExecuteAsync("DELETE FROM UserProfile", transaction: transaction);
         await connection.ExecuteAsync(
@@ -81,6 +86,7 @@ public sealed class DatabaseService : IDatabaseService
     public async Task SaveAIProviderAsync(AIProviderConfig config)
     {
         await using var connection = new SqliteConnection(_connectionString);
+        await connection.OpenAsync();
         await using var transaction = await connection.BeginTransactionAsync();
         if (config.IsPrimary)
         {

@@ -1,5 +1,5 @@
 {
-  "version": "1.4.0",
+  "version": "1.4.1",
   "title": "Atualização VORTEX 1.2 — Workspace",
   "notes": "Modo agente com autorização por ação, Workspace persistente, indexação inteligente, backups e aplicação segura de alterações.",
   "downloadUrl": "https://github.com/zszoro/Vortex-pc/releases"
