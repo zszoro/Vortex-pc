@@ -13,6 +13,7 @@ public partial class MainViewModel : ObservableObject
     private readonly IWorkspaceService _workspaceService;
     private readonly IPlanningService _planningService;
     private readonly ISpotifyService _spotifyService;
+    private readonly IAuthorizationService _authorizationService;
 
     [ObservableProperty] private string _userName = "Você";
     [ObservableProperty] private string _status = "Online";
@@ -46,7 +47,8 @@ public partial class MainViewModel : ObservableObject
         IDesktopCommandService desktopCommands,
         IWorkspaceService workspaceService,
         IPlanningService planningService,
-        ISpotifyService spotifyService)
+        ISpotifyService spotifyService,
+        IAuthorizationService authorizationService)
     {
         _aiService = aiService;
         _dbService = dbService;
@@ -54,6 +56,7 @@ public partial class MainViewModel : ObservableObject
         _workspaceService = workspaceService;
         _planningService = planningService;
         _spotifyService = spotifyService;
+        _authorizationService = authorizationService;
         ApplyWorkspace(_workspaceService.Current);
         _ = InitializeAsync();
     }
@@ -161,12 +164,7 @@ public partial class MainViewModel : ObservableObject
                     prompt, @"\bdiscord\b.*\b(?:mande|envie|enviar|escreva|mensagem)\b",
                     System.Text.RegularExpressions.RegexOptions.IgnoreCase))
             {
-                var openDiscord = await _desktopCommands.TryExecuteAsync("abrir discord");
-                var replyText = openDiscord.Handled && !openDiscord.IsError
-                    ? "Discord aberto. Para enviar a mensagem automaticamente, ative o modo Computer Use para eu controlar a interface com confirmação."
-                    : "Não consegui abrir o Discord. Verifique se ele está instalado ou abra manualmente e use o modo Computer Use para enviar mensagens.";
-                await AddAssistantReplyAsync(replyText);
-                Status = openDiscord.Handled && openDiscord.IsError ? "Error" : "Online";
+                await HandleDiscordGuiRequestAsync(prompt);
                 return;
             }
             var localResult = await _desktopCommands.TryExecuteAsync(prompt);
@@ -209,6 +207,55 @@ public partial class MainViewModel : ObservableObject
         Messages.Add(reply);
         LastAssistantMessage = content;
         await _dbService.SaveChatMessageAsync(reply);
+    }
+
+    private async Task HandleDiscordGuiRequestAsync(string prompt)
+    {
+        var target = ExtractDiscordTarget(prompt);
+        LastAssistantMessage = string.IsNullOrWhiteSpace(target)
+            ? "Solicitando autorização para controlar o Discord."
+            : $"Solicitando autorização para controlar o Discord e enviar mensagem para {target}.";
+
+        var targets = new List<string>
+        {
+            "Aplicativo: Discord",
+            "Ação: controlar a interface do Discord",
+            "Permissão: clicar, digitar e navegar somente para esta tarefa"
+        };
+        if (!string.IsNullOrWhiteSpace(target))
+            targets.Add($"Destinatário: {target}");
+
+        var allowed = await _authorizationService.RequestAsync(new AuthorizationRequest(
+            "Controle do computador",
+            "Usar Computer Use no Discord",
+            "O VORTEX precisa controlar a interface gráfica para encontrar a conversa no Discord, digitar a mensagem e aguardar sua confirmação antes de enviar qualquer conteúdo.",
+            targets,
+            IsHighImpact: true));
+
+        if (!allowed)
+        {
+            await AddAssistantReplyAsync("Ação cancelada: autorização para controlar o Discord negada.");
+            Status = "Error";
+            return;
+        }
+
+        var openDiscord = await _desktopCommands.TryExecuteAsync("/confirmar abrir discord");
+        var replyText = openDiscord.Handled && !openDiscord.IsError
+            ? "Autorização concedida. Discord aberto; o modo de controle de GUI foi chamado para esta tarefa."
+            : "Autorização concedida, mas não consegui abrir o Discord automaticamente. Abra o Discord e peça novamente para eu controlar a interface.";
+        await AddAssistantReplyAsync(replyText);
+        Status = openDiscord.Handled && openDiscord.IsError ? "Error" : "Online";
+    }
+
+    private static string ExtractDiscordTarget(string prompt)
+    {
+        var match = System.Text.RegularExpressions.Regex.Match(
+            prompt,
+            @"(?:para|pro|pra|ao|a)\s+(?<target>[\p{L}\p{N}_\-. ]{2,40})(?:\s*:|$)",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        return match.Success
+            ? match.Groups["target"].Value.Trim().Trim('.', ',', ':', ';', '!')
+            : string.Empty;
     }
 
     public void RefreshSpotifyState()

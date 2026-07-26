@@ -81,9 +81,9 @@ public sealed partial class DesktopCommandService : IDesktopCommandService
         {
             var app = NormalizeRequestedApplication(openApp.Groups["app"].Value);
             if (string.IsNullOrWhiteSpace(app)) return new(false, string.Empty);
-            var allowed = await _authorization.RequestAsync(new(
-                "Abrir programa", "Iniciar aplicativo",
-                "O VORTEX iniciará este programa no Windows.", [app]), cancellationToken);
+            var allowed = confirmed || await _authorization.RequestAsync(new(
+                    "Abrir programa", "Iniciar aplicativo",
+                    "O VORTEX iniciará este programa no Windows.", [app]), cancellationToken);
             return allowed
                 ? OpenApplication(app)
                 : new(true, "Ação cancelada: autorização negada.", true);

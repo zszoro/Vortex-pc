@@ -1,6 +1,6 @@
 {
-  "version": "1.7.3",
-  "title": "Atualizacao VORTEX 1.7.3 - Discord e voz",
-  "notes": "Corrige comandos naturais com Discord e ajusta a voz do chat para ficar mais calma, ignorando erros e blocos de codigo.",
+  "version": "1.7.4",
+  "title": "Atualizacao VORTEX 1.7.4 - Controle GUI",
+  "notes": "Pedidos para enviar mensagem no Discord agora chamam automaticamente o modal de autorizacao do controle de computador.",
   "downloadUrl": "https://github.com/zszoro/Vortex-pc/releases"
 }
