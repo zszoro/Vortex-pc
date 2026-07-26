@@ -14,6 +14,7 @@ public partial class MainViewModel : ObservableObject
     private readonly IPlanningService _planningService;
     private readonly ISpotifyService _spotifyService;
     private readonly IAuthorizationService _authorizationService;
+    private readonly IGuiAutomationService _guiAutomationService;
 
     [ObservableProperty] private string _userName = "Você";
     [ObservableProperty] private string _status = "Online";
@@ -48,7 +49,8 @@ public partial class MainViewModel : ObservableObject
         IWorkspaceService workspaceService,
         IPlanningService planningService,
         ISpotifyService spotifyService,
-        IAuthorizationService authorizationService)
+        IAuthorizationService authorizationService,
+        IGuiAutomationService guiAutomationService)
     {
         _aiService = aiService;
         _dbService = dbService;
@@ -57,6 +59,7 @@ public partial class MainViewModel : ObservableObject
         _planningService = planningService;
         _spotifyService = spotifyService;
         _authorizationService = authorizationService;
+        _guiAutomationService = guiAutomationService;
         ApplyWorkspace(_workspaceService.Current);
         _ = InitializeAsync();
     }
@@ -210,6 +213,19 @@ public partial class MainViewModel : ObservableObject
     private async Task HandleDiscordGuiRequestAsync(string prompt)
     {
         var target = ExtractDiscordTarget(prompt);
+        var message = ExtractDiscordMessage(prompt, target);
+        if (string.IsNullOrWhiteSpace(target))
+        {
+            await AddAssistantReplyAsync("Não identifiquei para quem devo enviar no Discord. Use algo como: mande mensagem para Math no Discord: oi");
+            Status = "Error";
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(message))
+        {
+            await AddAssistantReplyAsync("Não identifiquei o texto da mensagem. Use algo como: mande mensagem para Math no Discord: oi");
+            Status = "Error";
+            return;
+        }
         LastAssistantMessage = string.IsNullOrWhiteSpace(target)
             ? "Solicitando autorização para controlar o Discord."
             : $"Solicitando autorização para controlar o Discord e enviar mensagem para {target}.";
@@ -222,6 +238,8 @@ public partial class MainViewModel : ObservableObject
         };
         if (!string.IsNullOrWhiteSpace(target))
             targets.Add($"Destinatário: {target}");
+        if (!string.IsNullOrWhiteSpace(message))
+            targets.Add($"Mensagem: {message}");
 
         var allowed = await _authorizationService.RequestAsync(new AuthorizationRequest(
             "Controle do computador",
@@ -238,11 +256,53 @@ public partial class MainViewModel : ObservableObject
         }
 
         var openDiscord = await _desktopCommands.TryExecuteAsync("/confirmar abrir discord");
-        var replyText = openDiscord.Handled && !openDiscord.IsError
-            ? "Autorização concedida. Discord aberto; o modo de controle de GUI foi chamado para esta tarefa."
-            : "Autorização concedida, mas não consegui abrir o Discord automaticamente. Abra o Discord e peça novamente para eu controlar a interface.";
-        await AddAssistantReplyAsync(replyText);
-        Status = openDiscord.Handled && openDiscord.IsError ? "Error" : "Online";
+        if (!openDiscord.Handled || openDiscord.IsError)
+        {
+            await AddAssistantReplyAsync("Autorização concedida, mas não consegui abrir o Discord automaticamente. Abra o Discord e peça novamente.");
+            Status = "Error";
+            return;
+        }
+
+        try
+        {
+            await _guiAutomationService.PrepareDiscordMessageAsync(target, message);
+        }
+        catch (Exception exception)
+        {
+            await AddAssistantReplyAsync($"Não consegui preparar a mensagem no Discord: {exception.Message}");
+            Status = "Error";
+            return;
+        }
+
+        var sendAllowed = await _authorizationService.RequestAsync(new AuthorizationRequest(
+            "Enviar mensagem",
+            "Confirmar envio no Discord",
+            "O VORTEX preparou a conversa e digitou a mensagem. Autorize somente se a conversa e o texto estiverem corretos na tela.",
+            [
+                $"Destinatário: {target}",
+                $"Mensagem: {message}",
+                "Ação final: pressionar Enter no Discord"
+            ],
+            IsHighImpact: true));
+
+        if (!sendAllowed)
+        {
+            await AddAssistantReplyAsync("Mensagem deixada como rascunho no Discord. Envio cancelado.");
+            Status = "Online";
+            return;
+        }
+
+        try
+        {
+            await _guiAutomationService.ConfirmDiscordSendAsync();
+            await AddAssistantReplyAsync($"Mensagem enviada para {target} no Discord.");
+            Status = "Online";
+        }
+        catch (Exception exception)
+        {
+            await AddAssistantReplyAsync($"Não consegui enviar a mensagem no Discord: {exception.Message}");
+            Status = "Error";
+        }
     }
 
     private static string ExtractDiscordTarget(string prompt)
@@ -265,6 +325,45 @@ public partial class MainViewModel : ObservableObject
             prompt,
             @"\b(?:mande|mandar|envie|enviar|escreva|escrever|digite|digitar|mensagem|msg|fale)\b",
             System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+    internal static string ExtractDiscordMessage(string prompt, string target)
+    {
+        var quoted = System.Text.RegularExpressions.Regex.Match(
+            prompt,
+            @"[""“'](?<message>[^""”']+)[""”']",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        if (quoted.Success) return quoted.Groups["message"].Value.Trim();
+
+        var colon = System.Text.RegularExpressions.Regex.Match(
+            prompt,
+            @":\s*(?<message>.+)$",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        if (colon.Success) return colon.Groups["message"].Value.Trim();
+
+        var saying = System.Text.RegularExpressions.Regex.Match(
+            prompt,
+            @"(?:dizendo|falando|com\s+(?:a\s+)?mensagem|texto)\s+(?<message>.+)$",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        if (saying.Success) return saying.Groups["message"].Value.Trim().Trim('"', '\'', '“', '”');
+
+        var lower = prompt.ToLowerInvariant();
+        var targetIndex = string.IsNullOrWhiteSpace(target)
+            ? -1
+            : lower.IndexOf(target.ToLowerInvariant(), StringComparison.Ordinal);
+        if (targetIndex >= 0)
+        {
+            var afterTarget = prompt[(targetIndex + target.Length)..].Trim();
+            afterTarget = System.Text.RegularExpressions.Regex.Replace(
+                afterTarget,
+                @"^(?:no|na|pelo)\s+discord\s*",
+                string.Empty,
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase).Trim();
+            if (!string.IsNullOrWhiteSpace(afterTarget))
+                return afterTarget.Trim(':', '-', ' ');
+        }
+
+        return string.Empty;
+    }
 
     public void RefreshSpotifyState()
     {

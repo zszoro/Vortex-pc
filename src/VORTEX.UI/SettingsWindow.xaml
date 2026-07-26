@@ -63,7 +63,7 @@
                         <StackPanel>
                             <TextBlock x:Name="UpdateTitle" Text="Verificando atualizações..."
                                        FontSize="17" FontWeight="SemiBold"/>
-                            <TextBlock x:Name="UpdateVersion" Text="Versao instalada: 1.7.5"
+                            <TextBlock x:Name="UpdateVersion" Text="Versao instalada: 1.7.6"
                                        Foreground="#55E6FF" Margin="0,7,0,0"/>
                             <TextBlock x:Name="UpdateNotes" Text="Consultando o manifesto do projeto."
                                        Foreground="#9AA5B7" TextWrapping="Wrap" Margin="0,12,0,0"/>

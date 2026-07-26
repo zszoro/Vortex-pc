@@ -1,6 +1,6 @@
 {
-  "version": "1.7.5",
-  "title": "Atualizacao VORTEX 1.7.5 - Roteamento Discord",
-  "notes": "Corrige pedidos de mensagem no Discord em qualquer ordem da frase e impede instrucoes falsas sobre Computer Use.",
+  "version": "1.7.6",
+  "title": "Atualizacao VORTEX 1.7.6 - Automacao Discord",
+  "notes": "O VORTEX agora prepara mensagens no Discord pela GUI e pede confirmacao final antes de enviar.",
   "downloadUrl": "https://github.com/zszoro/Vortex-pc/releases"
 }

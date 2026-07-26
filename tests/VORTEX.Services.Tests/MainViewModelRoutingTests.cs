@@ -22,4 +22,13 @@ public sealed class MainViewModelRoutingTests
     {
         Assert.False(MainViewModel.IsDiscordMessageRequest(prompt));
     }
+
+    [Theory]
+    [InlineData("mande mensagem para Math no Discord: oi", "Math", "oi")]
+    [InlineData("discord mande mensagem para math dizendo bom dia", "math", "bom dia")]
+    [InlineData("envie msg no discord para Math \"cheguei\"", "Math", "cheguei")]
+    public void ExtractsDiscordMessageText(string prompt, string target, string expected)
+    {
+        Assert.Equal(expected, MainViewModel.ExtractDiscordMessage(prompt, target));
+    }
 }

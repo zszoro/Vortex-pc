@@ -68,6 +68,7 @@ namespace VORTEX.UI
             services.AddSingleton<IPlanningService, PlanningService>();
             services.AddSingleton<ISpotifyService, SpotifyService>();
             services.AddSingleton<IAccountService, AccountService>();
+            services.AddSingleton<IGuiAutomationService, GuiAutomationService>();
 
             // ViewModels
             services.AddTransient<SetupViewModel>();
