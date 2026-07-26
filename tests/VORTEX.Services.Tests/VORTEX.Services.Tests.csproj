@@ -17,5 +17,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\VORTEX.Services\VORTEX.Services.csproj" />
     <ProjectReference Include="..\..\src\VORTEX.Database\VORTEX.Database.csproj" />
+    <ProjectReference Include="..\..\src\VORTEX.ViewModels\VORTEX.ViewModels.csproj" />
   </ItemGroup>
 </Project>

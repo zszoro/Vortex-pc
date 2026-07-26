@@ -1,6 +1,6 @@
 {
-  "version": "1.7.4",
-  "title": "Atualizacao VORTEX 1.7.4 - Controle GUI",
-  "notes": "Pedidos para enviar mensagem no Discord agora chamam automaticamente o modal de autorizacao do controle de computador.",
+  "version": "1.7.5",
+  "title": "Atualizacao VORTEX 1.7.5 - Roteamento Discord",
+  "notes": "Corrige pedidos de mensagem no Discord em qualquer ordem da frase e impede instrucoes falsas sobre Computer Use.",
   "downloadUrl": "https://github.com/zszoro/Vortex-pc/releases"
 }

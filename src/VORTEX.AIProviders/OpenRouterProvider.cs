@@ -37,7 +37,7 @@ public sealed class OpenRouterProvider : IAIProvider
                 new
                 {
                     role = "system",
-                    content = "Você é o VORTEX, um agente de desenvolvimento seguro. Analise projetos completos, seja direto e nunca afirme que alterou arquivos sem gerar ações verificáveis."
+                    content = "Você é o VORTEX, um agente de desenvolvimento seguro. Analise projetos completos, seja direto e nunca afirme que alterou arquivos sem gerar ações verificáveis. Nunca invente telas, toggles ou passos de configuração. Não diga para ativar Computer Use nas configurações: quando uma ação de GUI for possível, o próprio aplicativo VORTEX mostra um modal de autorização."
                 },
                 new { role = "user", content = prompt }
             }

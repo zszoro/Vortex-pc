@@ -160,9 +160,7 @@ public partial class MainViewModel : ObservableObject
                 Status = "Online";
                 return;
             }
-            if (System.Text.RegularExpressions.Regex.IsMatch(
-                    prompt, @"\bdiscord\b.*\b(?:mande|envie|enviar|escreva|mensagem)\b",
-                    System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+            if (IsDiscordMessageRequest(prompt))
             {
                 await HandleDiscordGuiRequestAsync(prompt);
                 return;
@@ -251,12 +249,22 @@ public partial class MainViewModel : ObservableObject
     {
         var match = System.Text.RegularExpressions.Regex.Match(
             prompt,
-            @"(?:para|pro|pra|ao|a)\s+(?<target>[\p{L}\p{N}_\-. ]{2,40})(?:\s*:|$)",
+            @"(?:para|pro|pra|ao|a)\s+(?<target>[\p{L}\p{N}_\-. ]{2,40})(?:\s+(?:no|na|pelo)\s+discord|\s*:|$)",
             System.Text.RegularExpressions.RegexOptions.IgnoreCase);
         return match.Success
             ? match.Groups["target"].Value.Trim().Trim('.', ',', ':', ';', '!')
             : string.Empty;
     }
+
+    internal static bool IsDiscordMessageRequest(string prompt) =>
+        System.Text.RegularExpressions.Regex.IsMatch(
+            prompt,
+            @"\bdiscord\b",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase)
+        && System.Text.RegularExpressions.Regex.IsMatch(
+            prompt,
+            @"\b(?:mande|mandar|envie|enviar|escreva|escrever|digite|digitar|mensagem|msg|fale)\b",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
 
     public void RefreshSpotifyState()
     {

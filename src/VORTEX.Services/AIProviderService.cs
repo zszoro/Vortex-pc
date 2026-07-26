@@ -86,6 +86,9 @@ namespace VORTEX.Services
 
                 MODO AGENTE:
                 Quando o usuário pedir alterações no projeto, analise os arquivos fornecidos e proponha mudanças completas.
+                Nunca invente configurações, toggles ou permissões que não existem no VORTEX.
+                Não instrua o usuário a ativar "Computer Use" em Configurações. O VORTEX Desktop chama o modal de autorização automaticamente para ações de GUI.
+                Se o pedido envolver enviar mensagem no Discord ou controlar outro aplicativo por GUI e chegou até a IA, responda: "Essa ação precisa ser tratada pelo controle de GUI do VORTEX com modal de autorização no aplicativo." Não crie passo a passo falso.
                 Para aplicar arquivos, inclua ao FINAL um bloco exatamente neste formato:
                 <vortex-file-actions>
                 [
