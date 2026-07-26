@@ -15,6 +15,7 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private string _status = "Online";
     [ObservableProperty] private string _userInput = string.Empty;
     [ObservableProperty] private bool _isBusy;
+    [ObservableProperty] private string _lastAssistantMessage = "Olá! Clique com o botão direito para falar comigo.";
 
     public ObservableCollection<ChatMessage> Messages { get; } = [];
 
@@ -36,6 +37,7 @@ public partial class MainViewModel : ObservableObject
         foreach (var message in await _dbService.GetChatMessagesAsync())
         {
             Messages.Add(message);
+            if (message.Role == "VORTEX") LastAssistantMessage = message.Content;
         }
     }
 
@@ -60,6 +62,7 @@ public partial class MainViewModel : ObservableObject
                 : await _aiService.AskAsync(prompt);
             var reply = new ChatMessage { Role = "VORTEX", Content = content };
             Messages.Add(reply);
+            LastAssistantMessage = content;
             await _dbService.SaveChatMessageAsync(reply);
             Status = localResult.Handled && localResult.IsError
                 ? "Error"
@@ -74,12 +77,19 @@ public partial class MainViewModel : ObservableObject
                 Role = "VORTEX",
                 Content = $"Não consegui concluir a solicitação: {ex.Message}"
             });
+            LastAssistantMessage = $"Ocorreu um erro: {ex.Message}";
             Status = "Error";
         }
         finally
         {
             IsBusy = false;
         }
+    }
+
+    partial void OnUserInputChanged(string value)
+    {
+        if (IsBusy) return;
+        Status = string.IsNullOrWhiteSpace(value) ? "Online" : "Typing";
     }
 
     [RelayCommand]

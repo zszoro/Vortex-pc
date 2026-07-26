@@ -1,51 +1,62 @@
 using System.Windows;
 using System.Windows.Input;
-using Microsoft.Extensions.DependencyInjection;
 using VORTEX.ViewModels;
 
-namespace VORTEX.UI
+namespace VORTEX.UI;
+
+public partial class CompanionWindow : Window
 {
-    public partial class CompanionWindow : Window
+    public CompanionWindow(MainViewModel viewModel)
     {
-        public CompanionWindow(CompanionViewModel viewModel)
+        DataContext = viewModel;
+        InitializeComponent();
+        Left = SystemParameters.WorkArea.Right - Width - 14;
+        Top = SystemParameters.WorkArea.Bottom - Height - 14;
+    }
+
+    private void Pet_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ClickCount == 2)
         {
-            DataContext = viewModel;
-            
-            viewModel.OnOpenMain += () =>
-            {
-                Application.Current.MainWindow.Visibility = Visibility.Visible;
-                Application.Current.MainWindow.Activate();
-            };
-
-            viewModel.OnOpenChat += () =>
-            {
-                var quickChat = App.ServiceProvider.GetRequiredService<QuickChatWindow>();
-                quickChat.Show();
-            };
-
-            InitializeComponent();
-            
-            // Posicionar no canto inferior direito
-            Left = SystemParameters.WorkArea.Width - Width - 20;
-            Top = SystemParameters.WorkArea.Height - Height - 20;
+            OpenMain();
+            return;
         }
+        if (e.LeftButton == MouseButtonState.Pressed) DragMove();
+    }
 
-        private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            if (e.ClickCount == 2)
-            {
-                Application.Current.MainWindow.Visibility = Visibility.Visible;
-                Application.Current.MainWindow.Activate();
-            }
-            else if (e.LeftButton == MouseButtonState.Pressed)
-            {
-                DragMove();
-            }
-        }
+    private void Pet_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        ToggleQuickPanel();
+    }
 
-        private void Exit_Click(object sender, RoutedEventArgs e)
+    private void ToggleQuickPanel()
+    {
+        QuickPanel.Visibility = QuickPanel.Visibility == Visibility.Visible
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+        if (QuickPanel.Visibility == Visibility.Visible)
         {
-            Application.Current.Shutdown();
+            PetInput.Focus();
+            Keyboard.Focus(PetInput);
         }
     }
+
+    private static void OpenMain()
+    {
+        var main = Application.Current.MainWindow;
+        if (main == null) return;
+        main.Show();
+        main.WindowState = WindowState.Normal;
+        main.Activate();
+    }
+
+    private void OpenMain_Click(object sender, RoutedEventArgs e) => OpenMain();
+    private void ToggleChat_Click(object sender, RoutedEventArgs e) => ToggleQuickPanel();
+
+    private void Topmost_Click(object sender, RoutedEventArgs e) =>
+        Topmost = TopmostMenuItem.IsChecked;
+
+    private void Exit_Click(object sender, RoutedEventArgs e) =>
+        Application.Current.Shutdown();
 }

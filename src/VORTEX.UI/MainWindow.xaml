@@ -97,6 +97,7 @@
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="74"/>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
@@ -116,7 +117,24 @@
                         </Border>
                     </Grid>
 
-                    <Grid Grid.Row="1">
+                    <Border x:Name="UpdateBanner" Grid.Row="1" Visibility="Collapsed"
+                            Background="#251F5FBF" BorderBrush="#5555E6FF" BorderThickness="1"
+                            CornerRadius="12" Margin="24,0,24,8" Padding="14,10">
+                        <Grid>
+                            <StackPanel>
+                                <TextBlock x:Name="UpdateBannerTitle" Text="Atualização do VORTEX disponível"
+                                           FontWeight="SemiBold" Foreground="#BFF5FF"/>
+                                <TextBlock x:Name="UpdateBannerNotes" FontSize="10" Foreground="#91A9BD"
+                                           TextTrimming="CharacterEllipsis" Margin="0,3,120,0"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Button Content="Agora não" Click="DismissUpdate_Click" Padding="10,5" Margin="0,0,7,0"/>
+                                <Button Content="Atualizar" Click="OpenUpdate_Click" Padding="12,5"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Grid Grid.Row="2">
                         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
                                     Visibility="{Binding Messages.Count, Converter={StaticResource CountToVisibilityConverter}}">
                             <local:VortexCore State="{Binding Status}" Width="170" Height="170"/>
@@ -150,7 +168,7 @@
                         </ListView>
                     </Grid>
 
-                    <Grid Grid.Row="2" Margin="28,12,28,25">
+                    <Grid Grid.Row="3" Margin="28,12,28,25">
                         <Border Background="#E20B101B" CornerRadius="18" BorderBrush="#3055E6FF"
                                 BorderThickness="1" Padding="7">
                             <Grid>

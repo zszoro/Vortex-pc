@@ -10,6 +10,11 @@ Agente pessoal de IA para Windows, construído em C# com WPF e .NET 8.
 - Credenciais protegidas com Windows DPAPI para o usuário atual.
 - Companion flutuante para acesso rápido.
 - Indicador visual dos estados online, pensando e erro.
+- Pet VORTEX vetorial, arrastável e com chat rápido embutido.
+- Pet roxo em repouso, azul ao digitar/processar e vermelho em erros.
+- Opção para manter o pet acima ou abaixo de outros aplicativos.
+- Verificação de versão por manifesto do GitHub.
+- Avisos de atualização na tela principal e nas configurações.
 - Executável autocontido para Windows x64.
 - Contexto das últimas mensagens enviado ao modelo.
 - Terminal PowerShell integrado ao chat.
@@ -40,6 +45,14 @@ instrução com confirmação:
 O diretório alterado com `cd` permanece ativo para os próximos comandos da
 sessão. A saída é limitada no chat e processos são interrompidos após 45
 segundos para evitar travamentos.
+
+## Atualizações
+
+O arquivo `version.json` informa a versão mais recente. Quando ela for superior
+à versão instalada, o aplicativo exibe “Atualização VORTEX …” com as ações
+“Atualizar” e “Agora não”. A guia Atualizações permanece disponível nas
+configurações para uma verificação manual. Nenhuma instalação ocorre sem
+confirmação do usuário.
 
 ## Segurança
 

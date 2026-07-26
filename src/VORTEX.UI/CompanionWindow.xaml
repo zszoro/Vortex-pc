@@ -3,26 +3,55 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         xmlns:local="clr-namespace:VORTEX.UI"
-        Title="Companion" Height="100" Width="100"
+        Title="Pet VORTEX" Height="230" Width="390"
         WindowStyle="None" AllowsTransparency="True" Background="Transparent"
-        Topmost="True" ShowInTaskbar="False" MouseLeftButtonDown="Window_MouseLeftButtonDown">
-    
+        Topmost="True" ShowInTaskbar="False" ResizeMode="NoResize">
     <Grid>
-        <!-- Núcleo VORTEX em miniatura -->
-        <local:VortexCore State="{Binding Status}" Width="80" Height="80" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <local:VortexCore.RenderTransform>
-                <ScaleTransform ScaleX="0.5" ScaleY="0.5" CenterX="40" CenterY="40"/>
-            </local:VortexCore.RenderTransform>
-        </local:VortexCore>
-        
-        <!-- Menu de Contexto -->
-        <Grid.ContextMenu>
-            <ContextMenu>
-                <MenuItem Header="Abrir VORTEX" Command="{Binding OpenMainWindowCommand}"/>
-                <MenuItem Header="Quick Chat" Command="{Binding OpenQuickChatCommand}"/>
-                <Separator/>
-                <MenuItem Header="Sair" Click="Exit_Click"/>
-            </ContextMenu>
-        </Grid.ContextMenu>
+        <Border x:Name="SpeechBubble" HorizontalAlignment="Right" VerticalAlignment="Top"
+                Width="270" MaxHeight="82" Margin="0,5,88,0" Background="#F20E1422"
+                BorderBrush="#407C3AED" BorderThickness="1" CornerRadius="15" Padding="13">
+            <TextBlock Text="{Binding LastAssistantMessage}" TextWrapping="Wrap"
+                       TextTrimming="CharacterEllipsis" MaxHeight="52" FontSize="11"
+                       Foreground="#E9E7FF"/>
+        </Border>
+
+        <Border x:Name="QuickPanel" VerticalAlignment="Bottom" HorizontalAlignment="Left"
+                Width="285" Margin="0,0,96,7" Background="#F20A0F1A"
+                BorderBrush="#5055E6FF" BorderThickness="1" CornerRadius="15"
+                Padding="10" Visibility="Collapsed">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <ui:TextBox x:Name="PetInput" Text="{Binding UserInput, UpdateSourceTrigger=PropertyChanged}"
+                            PlaceholderText="Fale com o VORTEX..." Background="Transparent"
+                            BorderThickness="0" Padding="8,7">
+                    <ui:TextBox.InputBindings>
+                        <KeyBinding Key="Enter" Command="{Binding SendMessageCommand}"/>
+                    </ui:TextBox.InputBindings>
+                </ui:TextBox>
+                <ui:Button Grid.Column="1" Command="{Binding SendMessageCommand}"
+                           Icon="{ui:SymbolIcon Send20}" Appearance="Primary"
+                           Width="38" Height="38"/>
+            </Grid>
+        </Border>
+
+        <Border x:Name="PetShell" Width="105" Height="105" HorizontalAlignment="Right"
+                VerticalAlignment="Bottom" Background="Transparent"
+                MouseLeftButtonDown="Pet_MouseLeftButtonDown"
+                MouseRightButtonDown="Pet_MouseRightButtonDown">
+            <local:VortexCore State="{Binding Status}" Width="105" Height="105"/>
+            <Border.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Abrir VORTEX" Click="OpenMain_Click"/>
+                    <MenuItem Header="Chat rápido" Click="ToggleChat_Click"/>
+                    <MenuItem x:Name="TopmostMenuItem" Header="Sempre no topo" IsCheckable="True"
+                              IsChecked="True" Click="Topmost_Click"/>
+                    <Separator/>
+                    <MenuItem Header="Sair" Click="Exit_Click"/>
+                </ContextMenu>
+            </Border.ContextMenu>
+        </Border>
     </Grid>
 </Window>

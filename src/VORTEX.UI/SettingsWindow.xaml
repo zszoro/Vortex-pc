@@ -1,26 +1,68 @@
-<ui:FluentWindow x:Class="VORTEX.UI.SettingsWindow"
+<Window x:Class="VORTEX.UI.SettingsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-        xmlns:local="clr-namespace:VORTEX.UI"
-        Title="Configurações VORTEX" Height="650" Width="900"
+        Title="Configurações do VORTEX" Height="680" Width="900"
+        MinHeight="560" MinWidth="760"
         WindowStartupLocation="CenterOwner"
-        ExtendsContentIntoTitleBar="True"
-        WindowBackdropType="Mica">
+        Background="#080B13" Foreground="#F3F6FC"
+        ShowInTaskbar="False">
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
 
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="220"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
+        <StackPanel Margin="4,0,0,18">
+            <TextBlock Text="Configurações" FontSize="28" FontWeight="SemiBold"/>
+            <TextBlock Text="Personalize o cérebro, o pet e as atualizações do VORTEX."
+                       Foreground="#8E99AB" Margin="0,5,0,0"/>
+        </StackPanel>
 
-        <ListBox x:Name="SettingsMenu" Grid.Column="0" Background="Transparent" BorderThickness="0" Padding="8">
-            <ListBoxItem Content="Inteligência Artificial"/>
-            <ListBoxItem Content="Personalização"/>
-            <ListBoxItem Content="Companion &amp; Atalhos"/>
-            <ListBoxItem Content="Sobre o VORTEX"/>
-        </ListBox>
+        <TabControl Grid.Row="1" Background="#101522" BorderBrush="#263044"
+                    Padding="8" SelectedIndex="0">
+            <TabItem Header="Inteligência artificial">
+                <Frame x:Name="SettingsFrame" NavigationUIVisibility="Hidden" Background="Transparent"/>
+            </TabItem>
+            <TabItem Header="Pet VORTEX">
+                <StackPanel Margin="28">
+                    <TextBlock Text="Pet VORTEX" FontSize="22" FontWeight="SemiBold"/>
+                    <TextBlock Text="O pet acompanha o estado do agente, pode ser arrastado e possui chat rápido embutido."
+                               Foreground="#9AA5B7" TextWrapping="Wrap" Margin="0,8,0,24"/>
+                    <CheckBox x:Name="TopmostCheckBox" Content="Manter o pet acima de outros aplicativos"
+                              IsChecked="True" Checked="TopmostChanged" Unchecked="TopmostChanged"
+                              Padding="4" Margin="0,0,0,12"/>
+                    <TextBlock Text="Clique com o botão direito no pet para abrir a caixa rápida. Dê dois cliques para abrir o aplicativo."
+                               Foreground="#8E99AB" TextWrapping="Wrap"/>
+                </StackPanel>
+            </TabItem>
+            <TabItem Header="Atualizações">
+                <StackPanel Margin="28">
+                    <TextBlock Text="Atualizações do VORTEX" FontSize="22" FontWeight="SemiBold"/>
+                    <Border Background="#151D2C" BorderBrush="#30405D" BorderThickness="1"
+                            CornerRadius="14" Padding="20" Margin="0,20,0,18">
+                        <StackPanel>
+                            <TextBlock x:Name="UpdateTitle" Text="Verificando atualizações..."
+                                       FontSize="17" FontWeight="SemiBold"/>
+                            <TextBlock x:Name="UpdateVersion" Text="Versão instalada: 1.1.0"
+                                       Foreground="#55E6FF" Margin="0,7,0,0"/>
+                            <TextBlock x:Name="UpdateNotes" Text="Consultando o manifesto do projeto."
+                                       Foreground="#9AA5B7" TextWrapping="Wrap" Margin="0,12,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="Verificar novamente" Click="CheckUpdates_Click"
+                                Padding="16,9" Margin="0,0,10,0"/>
+                        <Button x:Name="UpdateButton" Content="Abrir página de atualização"
+                                Click="Update_Click" Padding="16,9" Background="#2B5F82" Foreground="White"/>
+                    </StackPanel>
+                    <TextBlock Text="O VORTEX nunca instala uma atualização sem sua confirmação."
+                               Foreground="#788497" Margin="0,14,0,0"/>
+                </StackPanel>
+            </TabItem>
+        </TabControl>
 
-        <Frame x:Name="SettingsFrame" Grid.Column="1"/>
+        <Button Grid.Row="2" Content="Fechar" Click="Close_Click"
+                HorizontalAlignment="Right" Padding="22,9" Margin="0,16,0,0"/>
     </Grid>
-</ui:FluentWindow>
+</Window>

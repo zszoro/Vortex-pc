@@ -17,6 +17,7 @@ namespace VORTEX.UI
             var services = new ServiceCollection();
             ConfigureServices(services);
             ServiceProvider = services.BuildServiceProvider();
+            ShutdownMode = ShutdownMode.OnMainWindowClose;
 
             var db = ServiceProvider.GetRequiredService<IDatabaseService>();
             await db.InitializeAsync();
@@ -25,11 +26,13 @@ namespace VORTEX.UI
             if (profile == null || !profile.IsSetupComplete)
             {
                 var setupWindow = ServiceProvider.GetRequiredService<SetupWindow>();
+                MainWindow = setupWindow;
                 setupWindow.Show();
             }
             else
             {
                 var mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
+                MainWindow = mainWindow;
                 mainWindow.Show();
                 
                 var companion = ServiceProvider.GetRequiredService<CompanionWindow>();
@@ -52,11 +55,11 @@ namespace VORTEX.UI
             // Services
             services.AddSingleton<IMessageService, MessageService>();
             services.AddSingleton<IDesktopCommandService, DesktopCommandService>();
+            services.AddSingleton<IUpdateService, GitHubUpdateService>();
 
             // ViewModels
             services.AddTransient<SetupViewModel>();
             services.AddSingleton<MainViewModel>();
-            services.AddTransient<CompanionViewModel>();
 
             // Windows
             services.AddTransient<SetupWindow>();
@@ -65,6 +68,12 @@ namespace VORTEX.UI
             services.AddTransient<QuickChatWindow>();
             services.AddTransient<SettingsWindow>();
             services.AddTransient<SettingsIAPage>();
+        }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            ServiceProvider?.Dispose();
+            base.OnExit(e);
         }
     }
 }

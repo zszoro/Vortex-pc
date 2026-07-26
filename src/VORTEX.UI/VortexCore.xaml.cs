@@ -43,18 +43,19 @@ namespace VORTEX.UI
             switch (state)
             {
                 case "Thinking":
-                    ApplyColors("#FFD700", "#FFA500"); // Dourado/Laranja
+                case "Typing":
+                    ApplyColors("#A5F3FC", "#0284C7");
                     thinkingAnim.Begin();
                     break;
                 case "Error":
-                    ApplyColors("#FF4B2B", "#FF416C"); // Vermelho
+                    ApplyColors("#FDA4AF", "#DC2626");
                     onlineAnim.Begin();
                     break;
                 case "Offline":
                     ApplyColors("#434343", "#000000"); // Cinza/Preto
                     break;
-                default: // Online
-                    ApplyColors("#00F2FE", "#4FACFE"); // Azul
+                default:
+                    ApplyColors("#C4B5FD", "#7C3AED");
                     onlineAnim.Begin();
                     break;
             }
@@ -68,6 +69,7 @@ namespace VORTEX.UI
             CoreColor1.Color = brush1;
             CoreColor2.Color = brush2;
             HaloColor.Color = brush2;
+            CoreGlow.Color = brush2;
         }
     }
 }
