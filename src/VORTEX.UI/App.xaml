@@ -40,9 +40,9 @@
                 <Setter Property="Foreground" Value="#D0D0D0"/>
                 <Setter Property="BorderThickness" Value="0"/>
                 <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                <Setter Property="Padding" Value="18,15"/>
-                <Setter Property="Margin" Value="0,4"/>
-                <Setter Property="FontSize" Value="15"/>
+                <Setter Property="Padding" Value="14,11"/>
+                <Setter Property="Margin" Value="0,2"/>
+                <Setter Property="FontSize" Value="13"/>
                 <Setter Property="Cursor" Value="Hand"/>
                 <Setter Property="Template">
                     <Setter.Value>

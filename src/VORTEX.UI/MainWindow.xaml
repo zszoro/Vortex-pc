@@ -160,61 +160,61 @@
                     <StackPanel>
                         <Button Style="{StaticResource NavButtonStyle}" Click="FocusChat_Click">
                             <StackPanel Orientation="Horizontal">
-                                <ui:SymbolIcon Symbol="Chat24" FontSize="28" Margin="0,0,14,0"/>
+                                <ui:SymbolIcon Symbol="Chat24" FontSize="24" Margin="0,0,12,0"/>
                                 <TextBlock Text="Conversa" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                         <Button Style="{StaticResource NavButtonStyle}" Click="Memory_Click">
                             <StackPanel Orientation="Horizontal">
-                                <ui:SymbolIcon Symbol="BrainCircuit24" FontSize="28" Margin="0,0,14,0"/>
+                                <ui:SymbolIcon Symbol="BrainCircuit24" FontSize="24" Margin="0,0,12,0"/>
                                 <TextBlock Text="Memoria" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                         <Button Style="{StaticResource NavButtonStyle}" Click="Automations_Click">
                             <StackPanel Orientation="Horizontal">
-                                <ui:SymbolIcon Symbol="Flowchart24" FontSize="28" Margin="0,0,14,0"/>
+                                <ui:SymbolIcon Symbol="Flowchart24" FontSize="24" Margin="0,0,12,0"/>
                                 <TextBlock Text="Automacoes" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                         <Button Style="{StaticResource NavButtonStyle}" Foreground="#1ED760" Click="Spotify_Click">
                             <StackPanel Orientation="Horizontal">
-                                <Image Source="/VORTEX.UI;component/Assets/spotify.png" Width="31" Height="31" Margin="0,0,12,0" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                <Image Source="/VORTEX.UI;component/Assets/spotify.png" Width="27" Height="27" Margin="0,0,11,0" RenderOptions.BitmapScalingMode="HighQuality"/>
                                 <TextBlock Text="Spotify" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                         <Button Style="{StaticResource NavButtonStyle}" Foreground="#B7A9FF" Click="Planning_Click">
                             <StackPanel Orientation="Horizontal">
-                                <ui:SymbolIcon Symbol="BranchFork24" FontSize="28" Margin="0,0,14,0"/>
+                                <ui:SymbolIcon Symbol="BranchFork24" FontSize="24" Margin="0,0,12,0"/>
                                 <TextBlock Text="Planejamento" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                         <Button Style="{StaticResource NavButtonStyle}" Click="Files_Click">
                             <StackPanel Orientation="Horizontal">
-                                <ui:SymbolIcon Symbol="Folder24" FontSize="28" Margin="0,0,14,0"/>
+                                <ui:SymbolIcon Symbol="Folder24" FontSize="24" Margin="0,0,12,0"/>
                                 <TextBlock Text="Meus arquivos" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                         <Button Style="{StaticResource NavButtonStyle}" Click="Backups_Click">
                             <StackPanel Orientation="Horizontal">
-                                <ui:SymbolIcon Symbol="History24" FontSize="28" Margin="0,0,14,0"/>
+                                <ui:SymbolIcon Symbol="History24" FontSize="24" Margin="0,0,12,0"/>
                                 <TextBlock Text="Backups" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                         <Button Style="{StaticResource NavButtonStyle}" Click="Terminal_Click">
                             <StackPanel Orientation="Horizontal">
-                                <ui:SymbolIcon Symbol="WindowConsole20" FontSize="28" Margin="0,0,14,0"/>
+                                <ui:SymbolIcon Symbol="WindowConsole20" FontSize="24" Margin="0,0,12,0"/>
                                 <TextBlock Text="Terminal" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                         <Button Style="{StaticResource NavButtonStyle}" Foreground="#C4B5FD" Click="TestComputerUse_Click" ToolTip="Move o cursor VORTEX ate minimizar e encerra o teste">
                             <StackPanel Orientation="Horizontal">
-                                <ui:SymbolIcon Symbol="CursorClick24" FontSize="28" Margin="0,0,14,0"/>
+                                <ui:SymbolIcon Symbol="CursorClick24" FontSize="24" Margin="0,0,12,0"/>
                                 <TextBlock Text="Testar Computer Use" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                         <Button Style="{StaticResource NavButtonStyle}" Click="Summarize_Click">
                             <StackPanel Orientation="Horizontal">
-                                <ui:SymbolIcon Symbol="TextBulletListSquare24" FontSize="28" Margin="0,0,14,0"/>
+                                <ui:SymbolIcon Symbol="TextBulletListSquare24" FontSize="24" Margin="0,0,12,0"/>
                                 <TextBlock Text="Resumir conversa" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>

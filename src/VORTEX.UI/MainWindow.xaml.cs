@@ -43,7 +43,11 @@ public partial class MainWindow
         viewModel.SpotifyPanelRequested += OpenSpotifyPanel;
         viewModel.PlanningPanelRequested += OpenPlanningPanel;
         Loaded += async (_, _) => await CheckForUpdatesAsync();
-        Loaded += (_, _) => viewModel.Messages.CollectionChanged += Messages_CollectionChanged;
+        Loaded += (_, _) =>
+        {
+            viewModel.Messages.CollectionChanged += Messages_CollectionChanged;
+            ScrollToLatestMessage();
+        };
         _updateTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(3) };
         _updateTimer.Tick += async (_, _) => await CheckForUpdatesAsync();
         _updateTimer.Start();
@@ -60,6 +64,7 @@ public partial class MainWindow
 
     private void Messages_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
+        ScrollToLatestMessage();
         if (_voiceMuted || e.NewItems is null) return;
         var reply = e.NewItems.OfType<ChatMessage>().LastOrDefault(item => item.Role == "VORTEX");
         if (reply == null) return;
@@ -126,6 +131,16 @@ public partial class MainWindow
             : plain;
     }
 
+    private void ScrollToLatestMessage()
+    {
+        Dispatcher.BeginInvoke(() =>
+        {
+            if (MessageList.Items.Count == 0) return;
+            var last = MessageList.Items[^1];
+            MessageList.ScrollIntoView(last);
+        }, DispatcherPriority.ContextIdle);
+    }
+
     private async Task CheckForUpdatesAsync()
     {
         _updateInfo = await _updateService.CheckAsync();
@@ -161,7 +176,11 @@ public partial class MainWindow
 
     private MainViewModel ViewModel => (MainViewModel)DataContext;
 
-    private void FocusChat_Click(object sender, RoutedEventArgs e) => ChatInput.Focus();
+    private void FocusChat_Click(object sender, RoutedEventArgs e)
+    {
+        ScrollToLatestMessage();
+        ChatInput.Focus();
+    }
 
     private void AddFile_Click(object sender, RoutedEventArgs e)
     {
@@ -275,6 +294,7 @@ public partial class MainWindow
                               && (string.IsNullOrWhiteSpace(query)
                                   || message.Content.Contains(query, StringComparison.OrdinalIgnoreCase));
         view.Refresh();
+        ScrollToLatestMessage();
     }
 
     private void Terminal_Click(object sender, RoutedEventArgs e)
