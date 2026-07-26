@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         xmlns:local="clr-namespace:VORTEX.UI"
-        Title="Pet VORTEX" Height="230" Width="390"
+        Title="Pet VORTEX" Icon="Assets/vortex.ico" Height="230" Width="390"
         WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         Topmost="True" ShowInTaskbar="False" ResizeMode="NoResize">
     <Grid>

@@ -40,6 +40,17 @@ namespace VORTEX.ViewModels
             LoadExistingConfig();
         }
 
+        partial void OnSelectedProviderChanged(string value)
+        {
+            SelectedModel = value switch
+            {
+                "OpenRouter" => "openrouter/free",
+                "Groq" => "openai/gpt-oss-120b",
+                "OpenAI" => "gpt-4.1-mini",
+                _ => SelectedModel
+            };
+        }
+
         private async void LoadExistingConfig()
         {
             var profile = await _dbService.GetUserProfileAsync();
@@ -82,33 +93,45 @@ namespace VORTEX.ViewModels
             }
 
             IsBusy = true;
-            ConnectionStatus = "Validando conexão final...";
-            bool success = await _aiService.TestConnectionAsync(SelectedProvider, ApiKey);
-            
-            if (!success)
+            try
             {
-                ConnectionStatus = "Erro: A chave de API não é válida. Verifique e tente novamente.";
-                IsBusy = false;
-                return;
+                ConnectionStatus = "Validando conexão final...";
+                bool success = await _aiService.TestConnectionAsync(SelectedProvider, ApiKey);
+                if (!success)
+                {
+                    ConnectionStatus = "Erro: a chave não foi aceita pelo OpenRouter.";
+                    return;
+                }
+
+                await _dbService.SaveUserProfileAsync(new UserProfile
+                {
+                    Name = Name,
+                    IsSetupComplete = true
+                });
+
+                await _dbService.SaveAIProviderAsync(new AIProviderConfig
+                {
+                    ProviderName = SelectedProvider,
+                    ApiKey = ApiKey,
+                    Model = string.IsNullOrWhiteSpace(SelectedModel)
+                        ? "openrouter/free"
+                        : SelectedModel.Trim(),
+                    IsPrimary = true,
+                    AutoFallback = AutoFallback
+                });
+
+                ConnectionStatus = "✓ Configuração salva com segurança.";
+                OnSetupComplete?.Invoke();
             }
-
-            await _dbService.SaveUserProfileAsync(new UserProfile 
-            { 
-                Name = Name, 
-                IsSetupComplete = true 
-            });
-
-            await _dbService.SaveAIProviderAsync(new AIProviderConfig
+            catch (Exception exception)
             {
-                ProviderName = SelectedProvider,
-                ApiKey = ApiKey,
-                Model = SelectedModel,
-                IsPrimary = true,
-                AutoFallback = AutoFallback
-            });
-
-            IsBusy = false;
-            OnSetupComplete?.Invoke();
+                ConnectionStatus =
+                    $"Não foi possível salvar: {exception.Message}";
+            }
+            finally
+            {
+                IsBusy = false;
+            }
         }
     }
 }

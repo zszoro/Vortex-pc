@@ -3,7 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:local="clr-namespace:VORTEX.UI"
-    Title="VORTEX — Agente de desenvolvimento" Height="820" Width="1480"
+    Title="VORTEX — Agente de desenvolvimento" Icon="Assets/vortex.ico" Height="820" Width="1480"
     MinHeight="680" MinWidth="980" WindowStartupLocation="CenterScreen"
     WindowStyle="SingleBorderWindow" ResizeMode="CanResize"
     Background="{DynamicResource VortexBackgroundBrush}">

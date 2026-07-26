@@ -43,12 +43,14 @@ public sealed class DatabaseService : IDatabaseService
                 CreatedAt TEXT NOT NULL
             );
             """);
-        try
+        var columns = (await connection.QueryAsync<string>(
+            "SELECT name FROM pragma_table_info('AIProviders')"))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        if (!columns.Contains("AutoFallback"))
         {
             await connection.ExecuteAsync(
                 "ALTER TABLE AIProviders ADD COLUMN AutoFallback INTEGER DEFAULT 1");
         }
-        catch (SqliteException exception) when (exception.SqliteErrorCode == 1) { }
 
         var profileExists = await connection.ExecuteScalarAsync<int>(
             "SELECT COUNT(*) FROM UserProfile");
