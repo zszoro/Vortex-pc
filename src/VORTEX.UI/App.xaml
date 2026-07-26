@@ -20,6 +20,14 @@
             <SolidColorBrush x:Key="VortexBackgroundBrush" Color="{StaticResource VortexBackground}"/>
             <SolidColorBrush x:Key="MutedTextBrush" Color="#8E99AB"/>
             <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource VortexCyan}"/>
+            <Style TargetType="TextBlock">
+                <Setter Property="Foreground" Value="#FFFFFF"/>
+            </Style>
+            <Style TargetType="TextBox">
+                <Setter Property="Foreground" Value="#FFFFFF"/>
+                <Setter Property="CaretBrush" Value="#55E6FF"/>
+                <Setter Property="Background" Value="#101522"/>
+            </Style>
 
             <Style x:Key="PanelStyle" TargetType="Border">
                 <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>

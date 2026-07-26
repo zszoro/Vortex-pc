@@ -15,12 +15,21 @@ namespace VORTEX.ViewModels
 
         [ObservableProperty] private string _name = string.Empty;
         [ObservableProperty] private string _apiKey = string.Empty;
-        [ObservableProperty] private string _selectedProvider = "Groq";
-        [ObservableProperty] private string _selectedModel = "openai/gpt-oss-120b";
+        [ObservableProperty] private string _selectedProvider = "OpenRouter";
+        [ObservableProperty] private string _selectedModel = "openrouter/free";
+        [ObservableProperty] private bool _autoFallback = true;
         [ObservableProperty] private string _connectionStatus = "Aguardando teste...";
         [ObservableProperty] private bool _isBusy;
 
         public List<string> Providers => _aiService.GetAvailableProviders().Select(p => p.Name).ToList();
+        public List<string> OpenRouterModels { get; } =
+        [
+            "openrouter/free",
+            "nvidia/nemotron-3-ultra-550b-a55b:free",
+            "cohere/north-mini-code:free",
+            "poolside/laguna-s-2.1:free",
+            "inclusionai/ling-3.0-flash:free"
+        ];
 
         public event Action? OnSetupComplete;
 
@@ -43,6 +52,7 @@ namespace VORTEX.ViewModels
                 SelectedProvider = primary.ProviderName;
                 ApiKey = primary.ApiKey;
                 SelectedModel = primary.Model;
+                AutoFallback = primary.AutoFallback;
             }
         }
 
@@ -93,7 +103,8 @@ namespace VORTEX.ViewModels
                 ProviderName = SelectedProvider,
                 ApiKey = ApiKey,
                 Model = SelectedModel,
-                IsPrimary = true
+                IsPrimary = true,
+                AutoFallback = AutoFallback
             });
 
             IsBusy = false;

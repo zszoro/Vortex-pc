@@ -8,5 +8,9 @@ namespace VORTEX.Core
         IEnumerable<IAIProvider> GetAvailableProviders();
         Task<bool> TestConnectionAsync(string providerName, string apiKey);
         Task<string> AskAsync(string prompt);
+        string ActiveModel { get; }
+        string ConnectionStatus { get; }
+        int LastContextTokens { get; }
+        long LastResponseMilliseconds { get; }
     }
 }

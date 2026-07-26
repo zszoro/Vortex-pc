@@ -53,6 +53,7 @@ namespace VORTEX.UI
             // AI Providers
             services.AddSingleton<IAIProvider, OpenAIProvider>();
             services.AddSingleton<IAIProvider, GroqProvider>();
+            services.AddSingleton<IAIProvider, OpenRouterProvider>();
             services.AddSingleton<IAIProviderService, AIProviderService>();
 
             // Services

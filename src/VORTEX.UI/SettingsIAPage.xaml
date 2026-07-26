@@ -25,9 +25,14 @@
                 <StackPanel>
                     <TextBlock Text="Modelo de linguagem" Foreground="#F3F6FC"
                                FontWeight="SemiBold" Margin="0,0,0,9"/>
-                    <ui:TextBox Text="{Binding SelectedModel}" PlaceholderText="Ex.: openai/gpt-oss-120b"/>
-                    <TextBlock Text="Na Groq, openai/gpt-oss-120b é a opção recomendada."
+                    <ComboBox ItemsSource="{Binding OpenRouterModels}" IsEditable="True"
+                              Text="{Binding SelectedModel, UpdateSourceTrigger=PropertyChanged}"
+                              Foreground="#FFFFFF" Background="#101522" Padding="8"/>
+                    <TextBlock Text="openrouter/free seleciona automaticamente um modelo gratuito compatível."
                                Foreground="#8490A3" FontSize="11" Margin="0,7,0,0"/>
+                    <CheckBox Content="Fallback automático entre modelos gratuitos"
+                              IsChecked="{Binding AutoFallback}" Foreground="#FFFFFF"
+                              Margin="0,13,0,0"/>
                 </StackPanel>
             </Border>
 

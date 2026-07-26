@@ -63,6 +63,7 @@ public sealed class DesktopCommandServiceTests
     private sealed class FakeWorkspaceService : IWorkspaceService
     {
         public WorkspaceContext? Current => null;
+        public WorkspaceChangeProposal? PendingProposal => null;
         public Task<WorkspaceContext> OpenAsync(string rootPath, CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();
         public Task<WorkspaceContext> CreateAsync(string projectName, CancellationToken cancellationToken = default) =>
@@ -79,5 +80,8 @@ public sealed class DesktopCommandServiceTests
             Task.FromResult(string.Empty);
         public Task<string> ProcessAgentResponseAsync(
             string response, CancellationToken cancellationToken = default) => Task.FromResult(response);
+        public Task<string> ApplyProposalAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult(string.Empty);
+        public void CancelProposal() { }
     }
 }

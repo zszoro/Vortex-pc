@@ -31,6 +31,7 @@ public sealed class WorkspaceService : IWorkspaceService
     private bool _currentAuthorized;
 
     public WorkspaceContext? Current { get; private set; }
+    public WorkspaceChangeProposal? PendingProposal { get; private set; }
 
     public WorkspaceService(IAuthorizationService authorization, string? dataDirectory = null)
     {
@@ -252,6 +253,35 @@ public sealed class WorkspaceService : IWorkspaceService
         if (changes == null || changes.Count == 0)
             return response.Replace(match.Value, string.Empty).Trim();
 
+        var cleanResponse = response.Replace(match.Value, string.Empty).Trim();
+        var previews = new List<string>();
+        foreach (var change in changes)
+        {
+            var source = ResolveWorkspacePath(change.Path);
+            var before = File.Exists(source)
+                ? await File.ReadAllTextAsync(source, cancellationToken)
+                : "(arquivo novo)";
+            var after = change.Operation.Equals("delete", StringComparison.OrdinalIgnoreCase)
+                ? "(arquivo será excluído)"
+                : change.Operation is "move" or "rename"
+                    ? $"(será movido para {change.DestinationPath})"
+                    : change.Content ?? string.Empty;
+            previews.Add($"{change.Operation.ToUpperInvariant()} {change.Path}\n--- ANTES\n{before}\n+++ DEPOIS\n{after}");
+        }
+        PendingProposal = new WorkspaceChangeProposal
+        {
+            Changes = changes,
+            Previews = previews
+        };
+        return cleanResponse +
+               $"\n\n📝 {changes.Count} alteração(ões) aguardam revisão. Veja o painel Alterações e escolha Aplicar tudo ou Cancelar.";
+    }
+
+    public async Task<string> ApplyProposalAsync(CancellationToken cancellationToken = default)
+    {
+        if (Current == null || PendingProposal == null)
+            return "Não há alterações pendentes.";
+        var changes = PendingProposal.Changes;
         var resolved = changes.Select(change => (
             Change: change,
             Source: ResolveWorkspacePath(change.Path),
@@ -261,17 +291,12 @@ public sealed class WorkspaceService : IWorkspaceService
         var targets = resolved.SelectMany(item =>
                 new[] { item.Source, item.Destination }.Where(path => path != null).Cast<string>())
             .Distinct(StringComparer.OrdinalIgnoreCase).ToList();
-        var description = string.Join("\n", resolved.Select(item =>
-            $"{item.Change.Operation}: {Path.GetRelativePath(Current.RootPath, item.Source)}" +
-            (item.Destination == null ? string.Empty : $" → {Path.GetRelativePath(Current.RootPath, item.Destination)}")));
         var authorized = await _authorization.RequestAsync(new(
             "Modificar Workspace",
-            $"Aplicar {changes.Count} alteração(ões)",
-            "O VORTEX analisou o pedido e propõe estas mudanças. Um backup completo será criado antes de aplicar:\n\n" + description,
+            $"Aplicar {changes.Count} alteração(ões) revisadas",
+            "O VORTEX criará um backup e aplicará apenas a proposta exibida no painel de alterações.",
             targets, true), cancellationToken);
-        var cleanResponse = response.Replace(match.Value, string.Empty).Trim();
-        if (!authorized) return cleanResponse + "\n\nA aplicação das mudanças foi cancelada.";
-
+        if (!authorized) return "Aplicação cancelada.";
         var backup = await CreateBackupAsync(cancellationToken: cancellationToken);
         foreach (var item in resolved)
         {
@@ -298,8 +323,11 @@ public sealed class WorkspaceService : IWorkspaceService
         }
         Current = Index(Current.RootPath, cancellationToken);
         await PersistAsync(cancellationToken);
-        return cleanResponse + $"\n\n✅ {changes.Count} alteração(ões) aplicada(s). Backup: {backup}";
+        PendingProposal = null;
+        return $"✅ {changes.Count} alteração(ões) aplicada(s). Backup: {backup}";
     }
+
+    public void CancelProposal() => PendingProposal = null;
 
     private WorkspaceContext Index(string rootPath, CancellationToken cancellationToken)
     {

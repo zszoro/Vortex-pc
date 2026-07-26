@@ -67,6 +67,9 @@ public partial class SettingsWindow : Window
         _preferences.PetAppearance = item.Content?.ToString() ?? "Orb";
         _mainViewModel.PetAppearance = _preferences.PetAppearance;
         _preferences.Save();
+        MessageBox.Show(this,
+            $"Skin {_preferences.PetAppearance} aplicada ao VORTEX principal e ao pet flutuante.",
+            "Aparência atualizada", MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
     private static void SelectComboValue(ComboBox comboBox, string value)

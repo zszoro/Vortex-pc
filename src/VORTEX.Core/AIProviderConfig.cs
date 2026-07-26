@@ -6,5 +6,6 @@ namespace VORTEX.Core
         public string ApiKey { get; set; } = string.Empty;
         public string Model { get; set; } = string.Empty;
         public bool IsPrimary { get; set; }
+        public bool AutoFallback { get; set; } = true;
     }
 }

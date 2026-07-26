@@ -33,7 +33,8 @@ public sealed class DatabaseService : IDatabaseService
                 ProviderName TEXT PRIMARY KEY,
                 ApiKey TEXT NOT NULL,
                 Model TEXT NOT NULL,
-                IsPrimary INTEGER DEFAULT 0
+                IsPrimary INTEGER DEFAULT 0,
+                AutoFallback INTEGER DEFAULT 1
             );
             CREATE TABLE IF NOT EXISTS ChatMessages (
                 Id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -42,6 +43,12 @@ public sealed class DatabaseService : IDatabaseService
                 CreatedAt TEXT NOT NULL
             );
             """);
+        try
+        {
+            await connection.ExecuteAsync(
+                "ALTER TABLE AIProviders ADD COLUMN AutoFallback INTEGER DEFAULT 1");
+        }
+        catch (SqliteException exception) when (exception.SqliteErrorCode == 1) { }
 
         var profileExists = await connection.ExecuteScalarAsync<int>(
             "SELECT COUNT(*) FROM UserProfile");
@@ -84,13 +91,15 @@ public sealed class DatabaseService : IDatabaseService
             ProviderName = config.ProviderName,
             ApiKey = Protect(config.ApiKey),
             Model = config.Model,
-            IsPrimary = config.IsPrimary
+            IsPrimary = config.IsPrimary,
+            AutoFallback = config.AutoFallback
         };
         await connection.ExecuteAsync("""
-            INSERT INTO AIProviders (ProviderName, ApiKey, Model, IsPrimary)
-            VALUES (@ProviderName, @ApiKey, @Model, @IsPrimary)
+            INSERT INTO AIProviders (ProviderName, ApiKey, Model, IsPrimary, AutoFallback)
+            VALUES (@ProviderName, @ApiKey, @Model, @IsPrimary, @AutoFallback)
             ON CONFLICT(ProviderName) DO UPDATE SET
-            ApiKey = @ApiKey, Model = @Model, IsPrimary = @IsPrimary
+            ApiKey = @ApiKey, Model = @Model, IsPrimary = @IsPrimary,
+            AutoFallback = @AutoFallback
             """, stored, transaction);
         await transaction.CommitAsync();
     }

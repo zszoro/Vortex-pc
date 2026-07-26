@@ -24,13 +24,13 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <ui:TextBox x:Name="PetInput" Text="{Binding UserInput, UpdateSourceTrigger=PropertyChanged}"
-                            PlaceholderText="Fale com o VORTEX..." Background="Transparent"
-                            BorderThickness="0" Padding="8,7">
-                    <ui:TextBox.InputBindings>
+                <TextBox x:Name="PetInput" Text="{Binding UserInput, UpdateSourceTrigger=PropertyChanged}"
+                         Background="#0A0F1A" Foreground="#FFFFFF" CaretBrush="#55E6FF"
+                         BorderBrush="#3055E6FF" BorderThickness="1" Padding="8,7">
+                    <TextBox.InputBindings>
                         <KeyBinding Key="Enter" Command="{Binding SendMessageCommand}"/>
-                    </ui:TextBox.InputBindings>
-                </ui:TextBox>
+                    </TextBox.InputBindings>
+                </TextBox>
                 <ui:Button Grid.Column="1" Command="{Binding SendMessageCommand}"
                            Icon="{ui:SymbolIcon Send20}" Appearance="Primary"
                            Width="38" Height="38"/>

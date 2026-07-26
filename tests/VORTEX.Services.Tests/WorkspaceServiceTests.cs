@@ -29,7 +29,11 @@ public sealed class WorkspaceServiceTests
 
             Assert.Contains("C#", context.Languages);
             Assert.Contains(".NET", context.Frameworks);
-            Assert.Contains("aplicada", response);
+            Assert.Contains("aguardam revisão", response);
+            Assert.NotNull(service.PendingProposal);
+            Assert.Equal("Console.WriteLine(\"old\");", await File.ReadAllTextAsync(Path.Combine(root, "Program.cs")));
+            var applyResult = await service.ApplyProposalAsync();
+            Assert.Contains("aplicada", applyResult);
             Assert.Equal("Console.WriteLine(\"new\");", await File.ReadAllTextAsync(Path.Combine(root, "Program.cs")));
             Assert.NotEmpty(service.GetBackups());
         }

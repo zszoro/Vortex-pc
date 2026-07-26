@@ -3,7 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:local="clr-namespace:VORTEX.UI"
-    Title="VORTEX — Agente pessoal" Height="800" Width="1240"
+    Title="VORTEX — Agente de desenvolvimento" Height="820" Width="1480"
     MinHeight="680" MinWidth="980" WindowStartupLocation="CenterScreen"
     WindowStyle="SingleBorderWindow" ResizeMode="CanResize"
     Background="{DynamicResource VortexBackgroundBrush}">
@@ -44,6 +44,8 @@
                 <ColumnDefinition Width="230"/>
                 <ColumnDefinition Width="18"/>
                 <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="18"/>
+                <ColumnDefinition Width="300"/>
             </Grid.ColumnDefinitions>
 
             <Border Grid.Column="0" Style="{StaticResource PanelStyle}" Padding="16">
@@ -130,8 +132,12 @@
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                             <TextBlock Text="Conversa principal" FontSize="17" FontWeight="SemiBold"/>
-                            <TextBlock Text="Contexto local • histórico protegido" FontSize="10"
-                                       Foreground="{StaticResource MutedTextBrush}"/>
+                            <TextBlock FontSize="10" Foreground="#FFFFFF">
+                                <Run Text="{Binding ActiveModel}"/><Run Text="  •  "/>
+                                <Run Text="{Binding ConnectionStatus}"/><Run Text="  •  contexto "/>
+                                <Run Text="{Binding ContextUsage}"/><Run Text="  •  "/>
+                                <Run Text="{Binding ResponseTime}"/>
+                            </TextBlock>
                         </StackPanel>
                         <Border Grid.Column="2" HorizontalAlignment="Right" Background="#1043E6A0" BorderBrush="#3043E6A0"
                                 BorderThickness="1" CornerRadius="12" Padding="12,7">
@@ -230,6 +236,55 @@
                                    Margin="0,0,58,-17" FontSize="9" Foreground="{StaticResource MutedTextBrush}"/>
                     </Grid>
                 </Grid>
+            </Border>
+
+            <Border Grid.Column="4" Style="{StaticResource PanelStyle}" Padding="14">
+                <TabControl Background="Transparent" Foreground="#FFFFFF">
+                    <TabItem Header="Explorador">
+                        <Grid Margin="0,12,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <TextBox Text="{Binding GlobalSearch, UpdateSourceTrigger=PropertyChanged}"
+                                     Background="#101522" Foreground="#FFFFFF" CaretBrush="#55E6FF"
+                                     BorderBrush="#3055E6FF" Padding="10,8"
+                                     ToolTip="Pesquisa global na Workspace"/>
+                            <ListBox Grid.Row="1" ItemsSource="{Binding FilteredWorkspaceFiles}"
+                                     Background="Transparent" Foreground="#FFFFFF"
+                                     BorderThickness="0" Margin="0,10,0,0"
+                                     FontFamily="Consolas" FontSize="11"/>
+                        </Grid>
+                    </TabItem>
+                    <TabItem Header="Alterações">
+                        <Grid Margin="0,12,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <ListBox ItemsSource="{Binding PendingChangePreviews}"
+                                     Background="Transparent" Foreground="#FFFFFF"
+                                     BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#151D2B" BorderBrush="#33465F"
+                                                BorderThickness="1" CornerRadius="8" Padding="9" Margin="0,0,0,8">
+                                            <TextBlock Text="{Binding}" TextWrapping="Wrap"
+                                                       FontFamily="Consolas" FontSize="10" Foreground="#FFFFFF"
+                                                       MaxHeight="260"/>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Button Content="Cancelar" Command="{Binding CancelChangesCommand}"
+                                        Padding="10,6" Margin="0,0,7,0"/>
+                                <Button Content="Aplicar tudo" Command="{Binding ApplyAllChangesCommand}"
+                                        Padding="12,6" Background="#7C4DFF" Foreground="#FFFFFF"/>
+                            </StackPanel>
+                        </Grid>
+                    </TabItem>
+                </TabControl>
             </Border>
         </Grid>
     </Grid>

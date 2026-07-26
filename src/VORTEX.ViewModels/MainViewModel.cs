@@ -21,8 +21,17 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private string _workspaceName = "Sem Workspace";
     [ObservableProperty] private string _workspacePath = "Conversa livre";
     [ObservableProperty] private bool _hasWorkspace;
+    [ObservableProperty] private string _activeModel = "Não configurado";
+    [ObservableProperty] private string _connectionStatus = "Desconectado";
+    [ObservableProperty] private string _contextUsage = "0 tokens";
+    [ObservableProperty] private string _responseTime = "—";
+    [ObservableProperty] private bool _hasPendingChanges;
+    [ObservableProperty] private string _globalSearch = string.Empty;
 
     public ObservableCollection<ChatMessage> Messages { get; } = [];
+    public ObservableCollection<string> WorkspaceFiles { get; } = [];
+    public ObservableCollection<string> FilteredWorkspaceFiles { get; } = [];
+    public ObservableCollection<string> PendingChangePreviews { get; } = [];
 
     public MainViewModel(
         IAIProviderService aiService,
@@ -70,6 +79,8 @@ public partial class MainViewModel : ObservableObject
                 : await _aiService.AskAsync(prompt);
             if (!localResult.Handled)
                 content = await _workspaceService.ProcessAgentResponseAsync(content);
+            RefreshAgentStatus();
+            RefreshPendingChanges();
             var reply = new ChatMessage { Role = "VORTEX", Content = content };
             Messages.Add(reply);
             LastAssistantMessage = content;
@@ -100,6 +111,26 @@ public partial class MainViewModel : ObservableObject
     {
         if (IsBusy) return;
         Status = string.IsNullOrWhiteSpace(value) ? "Online" : "Typing";
+    }
+
+    partial void OnGlobalSearchChanged(string value) => FilterWorkspaceFiles();
+
+    [RelayCommand]
+    private async Task ApplyAllChangesAsync()
+    {
+        var result = await _workspaceService.ApplyProposalAsync();
+        RefreshPendingChanges();
+        ApplyWorkspace(_workspaceService.Current);
+        var message = new ChatMessage { Role = "VORTEX", Content = result };
+        Messages.Add(message);
+        await _dbService.SaveChatMessageAsync(message);
+    }
+
+    [RelayCommand]
+    private void CancelChanges()
+    {
+        _workspaceService.CancelProposal();
+        RefreshPendingChanges();
     }
 
     [RelayCommand]
@@ -150,6 +181,36 @@ public partial class MainViewModel : ObservableObject
         HasWorkspace = context != null;
         WorkspaceName = context?.Name ?? "Sem Workspace";
         WorkspacePath = context?.RootPath ?? "Conversa livre";
+        WorkspaceFiles.Clear();
+        if (context != null)
+            foreach (var file in context.Files) WorkspaceFiles.Add(file);
+        FilterWorkspaceFiles();
+    }
+
+    private void FilterWorkspaceFiles()
+    {
+        FilteredWorkspaceFiles.Clear();
+        foreach (var file in WorkspaceFiles.Where(file =>
+                     string.IsNullOrWhiteSpace(GlobalSearch)
+                     || file.Contains(GlobalSearch, StringComparison.OrdinalIgnoreCase)).Take(1000))
+            FilteredWorkspaceFiles.Add(file);
+    }
+
+    private void RefreshAgentStatus()
+    {
+        ActiveModel = _aiService.ActiveModel;
+        ConnectionStatus = _aiService.ConnectionStatus;
+        ContextUsage = $"~{_aiService.LastContextTokens:N0} tokens";
+        ResponseTime = $"{_aiService.LastResponseMilliseconds / 1000d:0.0}s";
+    }
+
+    private void RefreshPendingChanges()
+    {
+        PendingChangePreviews.Clear();
+        if (_workspaceService.PendingProposal != null)
+            foreach (var preview in _workspaceService.PendingProposal.Previews)
+                PendingChangePreviews.Add(preview);
+        HasPendingChanges = PendingChangePreviews.Count > 0;
     }
 
     [RelayCommand]

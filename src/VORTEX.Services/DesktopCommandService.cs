@@ -318,7 +318,7 @@ public sealed partial class DesktopCommandService : IDesktopCommandService
     [GeneratedRegex(@"^(?:abra|abrir|abra a)\s+pasta\s+[""']?(?<path>.+?)[""']?[.!]?$", RegexOptions.IgnoreCase)]
     private static partial Regex OpenFolderPattern();
 
-    [GeneratedRegex(@"^(?:abra|abrir|inicie|iniciar)\s+(?:o|a)?\s*(?<app>.+?)$", RegexOptions.IgnoreCase)]
+    [GeneratedRegex(@"^(?:abra|abrir|inicie|iniciar)\s+(?:o|a)?\s*(?<app>[^,:]+?)(?:\s+e\s+.+)?[.!:]?$", RegexOptions.IgnoreCase)]
     private static partial Regex OpenAppPattern();
 
     [GeneratedRegex(@"^(?:mova|mover)\s+(?:a pasta|o arquivo)?\s*[""'](?<source>.+?)[""']\s+para\s+[""'](?<destination>.+?)[""']$", RegexOptions.IgnoreCase)]

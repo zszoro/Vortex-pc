@@ -3,6 +3,7 @@ namespace VORTEX.Core;
 public interface IWorkspaceService
 {
     WorkspaceContext? Current { get; }
+    WorkspaceChangeProposal? PendingProposal { get; }
     Task<WorkspaceContext> OpenAsync(string rootPath, CancellationToken cancellationToken = default);
     Task<WorkspaceContext> CreateAsync(string projectName, CancellationToken cancellationToken = default);
     Task ClearAsync();
@@ -11,4 +12,6 @@ public interface IWorkspaceService
     Task RestoreBackupAsync(string backupPath, CancellationToken cancellationToken = default);
     Task<string> BuildRelevantContextAsync(string query, int maxCharacters = 35000, CancellationToken cancellationToken = default);
     Task<string> ProcessAgentResponseAsync(string response, CancellationToken cancellationToken = default);
+    Task<string> ApplyProposalAsync(CancellationToken cancellationToken = default);
+    void CancelProposal();
 }
