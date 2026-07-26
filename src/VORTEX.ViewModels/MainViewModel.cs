@@ -10,6 +10,7 @@ public partial class MainViewModel : ObservableObject
     private readonly IAIProviderService _aiService;
     private readonly IDatabaseService _dbService;
     private readonly IDesktopCommandService _desktopCommands;
+    private readonly IWorkspaceService _workspaceService;
 
     [ObservableProperty] private string _userName = "Você";
     [ObservableProperty] private string _status = "Online";
@@ -17,17 +18,23 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private string _lastAssistantMessage = "Olá! Clique com o botão direito para falar comigo.";
     [ObservableProperty] private string _petAppearance = "Orb";
+    [ObservableProperty] private string _workspaceName = "Sem Workspace";
+    [ObservableProperty] private string _workspacePath = "Conversa livre";
+    [ObservableProperty] private bool _hasWorkspace;
 
     public ObservableCollection<ChatMessage> Messages { get; } = [];
 
     public MainViewModel(
         IAIProviderService aiService,
         IDatabaseService dbService,
-        IDesktopCommandService desktopCommands)
+        IDesktopCommandService desktopCommands,
+        IWorkspaceService workspaceService)
     {
         _aiService = aiService;
         _dbService = dbService;
         _desktopCommands = desktopCommands;
+        _workspaceService = workspaceService;
+        ApplyWorkspace(_workspaceService.Current);
         _ = InitializeAsync();
     }
 
@@ -61,6 +68,8 @@ public partial class MainViewModel : ObservableObject
             var content = localResult.Handled
                 ? localResult.Output
                 : await _aiService.AskAsync(prompt);
+            if (!localResult.Handled)
+                content = await _workspaceService.ProcessAgentResponseAsync(content);
             var reply = new ChatMessage { Role = "VORTEX", Content = content };
             Messages.Add(reply);
             LastAssistantMessage = content;
@@ -96,9 +105,51 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private async Task NewConversationAsync()
     {
+        await StartBlankConversationAsync();
+    }
+
+    public async Task StartBlankConversationAsync()
+    {
         await _dbService.ClearChatMessagesAsync();
+        await _workspaceService.ClearAsync();
         Messages.Clear();
         Status = "Online";
+        ApplyWorkspace(null);
+    }
+
+    public async Task OpenWorkspaceAsync(string path)
+    {
+        var context = await _workspaceService.OpenAsync(path);
+        await BeginWorkspaceConversationAsync(context);
+    }
+
+    public async Task CreateWorkspaceAsync(string name)
+    {
+        var context = await _workspaceService.CreateAsync(name);
+        await BeginWorkspaceConversationAsync(context);
+    }
+
+    private async Task BeginWorkspaceConversationAsync(WorkspaceContext context)
+    {
+        await _dbService.ClearChatMessagesAsync();
+        Messages.Clear();
+        ApplyWorkspace(context);
+        var message = new ChatMessage
+        {
+            Role = "VORTEX",
+            Content = $"Workspace **{context.Name}** indexada.\n\n{context.ArchitectureSummary}\n\n" +
+                      "Agora posso relacionar os arquivos deste projeto durante toda a conversa."
+        };
+        Messages.Add(message);
+        await _dbService.SaveChatMessageAsync(message);
+        LastAssistantMessage = $"Workspace {context.Name} pronta.";
+    }
+
+    private void ApplyWorkspace(WorkspaceContext? context)
+    {
+        HasWorkspace = context != null;
+        WorkspaceName = context?.Name ?? "Sem Workspace";
+        WorkspacePath = context?.RootPath ?? "Conversa livre";
     }
 
     [RelayCommand]

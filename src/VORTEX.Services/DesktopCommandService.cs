@@ -14,7 +14,8 @@ public sealed partial class DesktopCommandService : IDesktopCommandService
         "get-childitem", "get-content", "set-content", "add-content", "copy-item",
         "move-item", "new-item", "remove-item", "rename-item", "test-path",
         "dotnet", "git", "npm", "npx", "node", "python", "py", "pip", "code",
-        "explorer", "start", "ping", "ipconfig", "whoami", "tasklist", "where"
+        "explorer", "start", "ping", "ipconfig", "whoami", "tasklist", "where",
+        "curl", "wget", "invoke-webrequest", "invoke-restmethod"
     };
 
     private static readonly Regex DestructivePattern = new(
@@ -22,6 +23,16 @@ public sealed partial class DesktopCommandService : IDesktopCommandService
         RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     private string _workingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+    private readonly IAuthorizationService _authorization;
+    private readonly IWorkspaceService _workspace;
+
+    public DesktopCommandService(
+        IAuthorizationService authorization,
+        IWorkspaceService workspace)
+    {
+        _authorization = authorization;
+        _workspace = workspace;
+    }
 
     public async Task<DesktopCommandResult> TryExecuteAsync(
         string input,
@@ -35,39 +46,61 @@ public sealed partial class DesktopCommandService : IDesktopCommandService
 
         if (TryGetTerminalCommand(text, out var command))
         {
-            if (DestructivePattern.IsMatch(command) && !confirmed)
-            {
-                return new(true,
-                    "⚠️ Este comando pode apagar ou interromper dados/processos. Para executar, envie novamente começando com `/confirmar `.",
-                    true);
-            }
-
+            var destructive = DestructivePattern.IsMatch(command);
+            var allowed = await _authorization.RequestAsync(new(
+                command.Contains("http", StringComparison.OrdinalIgnoreCase)
+                    || command.StartsWith("curl", StringComparison.OrdinalIgnoreCase)
+                    || command.StartsWith("wget", StringComparison.OrdinalIgnoreCase)
+                    ? "Internet e terminal"
+                    : "Execução de comando",
+                "Executar comando no computador",
+                destructive
+                    ? "Este comando pode alterar, apagar ou interromper recursos. Um backup da Workspace será criado antes da execução."
+                    : "O VORTEX executará este comando no PowerShell e mostrará a saída no chat.",
+                [$"Diretório: {_workingDirectory}", $"Comando: {command}"],
+                destructive), cancellationToken);
+            if (!allowed) return new(true, "Ação cancelada: autorização negada.", true);
+            if (destructive) await _workspace.CreateBackupAsync(cancellationToken: cancellationToken);
             return await ExecutePowerShellAsync(command, cancellationToken);
         }
 
         var openFolder = OpenFolderPattern().Match(text);
         if (openFolder.Success)
         {
-            return OpenPath(ExpandPath(openFolder.Groups["path"].Value), true);
+            var path = ExpandPath(openFolder.Groups["path"].Value);
+            var allowed = await _authorization.RequestAsync(new(
+                "Acesso a pastas", "Abrir pasta",
+                "O Explorador de Arquivos será aberto neste local.", [path]), cancellationToken);
+            return allowed
+                ? OpenPath(path, true)
+                : new(true, "Ação cancelada: autorização negada.", true);
         }
 
         var openApp = OpenAppPattern().Match(text);
         if (openApp.Success)
         {
-            return OpenApplication(openApp.Groups["app"].Value.Trim());
+            var app = openApp.Groups["app"].Value.Trim();
+            var allowed = await _authorization.RequestAsync(new(
+                "Abrir programa", "Iniciar aplicativo",
+                "O VORTEX iniciará este programa no Windows.", [app]), cancellationToken);
+            return allowed
+                ? OpenApplication(app)
+                : new(true, "Ação cancelada: autorização negada.", true);
         }
 
         var move = MovePattern().Match(text);
         if (move.Success)
         {
-            if (!confirmed)
-            {
-                return new(true,
-                    "⚠️ Mover arquivos ou pastas altera o sistema. Reenvie a instrução começando com `/confirmar `.",
-                    true);
-            }
-            var source = EscapePowerShell(ExpandPath(move.Groups["source"].Value));
-            var destination = EscapePowerShell(ExpandPath(move.Groups["destination"].Value));
+            var sourcePath = ExpandPath(move.Groups["source"].Value);
+            var destinationPath = ExpandPath(move.Groups["destination"].Value);
+            var allowed = await _authorization.RequestAsync(new(
+                "Mover arquivos", "Mover arquivo ou pasta",
+                "O item será copiado para o backup da Workspace e depois movido.",
+                [sourcePath, destinationPath], true), cancellationToken);
+            if (!allowed) return new(true, "Ação cancelada: autorização negada.", true);
+            await _workspace.CreateBackupAsync(cancellationToken: cancellationToken);
+            var source = EscapePowerShell(sourcePath);
+            var destination = EscapePowerShell(destinationPath);
             return await ExecutePowerShellAsync(
                 $"Move-Item -LiteralPath '{source}' -Destination '{destination}'", cancellationToken);
         }
@@ -75,13 +108,14 @@ public sealed partial class DesktopCommandService : IDesktopCommandService
         var write = WriteFilePattern().Match(text);
         if (write.Success)
         {
-            if (!confirmed)
-            {
-                return new(true,
-                    "⚠️ Modificar um arquivo exige confirmação. Reenvie começando com `/confirmar `.",
-                    true);
-            }
-            var path = EscapePowerShell(ExpandPath(write.Groups["path"].Value));
+            var filePath = ExpandPath(write.Groups["path"].Value);
+            var allowed = await _authorization.RequestAsync(new(
+                "Editar arquivo", "Modificar arquivo",
+                "O arquivo atual será incluído no backup e depois receberá o novo conteúdo.",
+                [filePath], true), cancellationToken);
+            if (!allowed) return new(true, "Ação cancelada: autorização negada.", true);
+            await _workspace.CreateBackupAsync(cancellationToken: cancellationToken);
+            var path = EscapePowerShell(filePath);
             var content = EscapePowerShell(write.Groups["content"].Value);
             return await ExecutePowerShellAsync(
                 $"Set-Content -LiteralPath '{path}' -Value '{content}' -Encoding UTF8", cancellationToken);

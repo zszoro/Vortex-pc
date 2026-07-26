@@ -1,5 +1,6 @@
 using VORTEX.Services;
 using Xunit;
+using VORTEX.Core;
 
 namespace VORTEX.Services.Tests;
 
@@ -8,7 +9,7 @@ public sealed class DesktopCommandServiceTests
     [Fact]
     public async Task ExecutesRecognizedTerminalCommand()
     {
-        var service = new DesktopCommandService();
+        var service = CreateService();
 
         var result = await service.TryExecuteAsync("echo vortex-ok");
 
@@ -20,19 +21,19 @@ public sealed class DesktopCommandServiceTests
     [Fact]
     public async Task BlocksDestructiveCommandWithoutConfirmation()
     {
-        var service = new DesktopCommandService();
+        var service = CreateService(allow: false);
 
         var result = await service.TryExecuteAsync("Remove-Item -LiteralPath 'anything'");
 
         Assert.True(result.Handled);
         Assert.True(result.IsError);
-        Assert.Contains("/confirmar", result.Output);
+        Assert.Contains("autorização negada", result.Output, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
     public async Task IgnoresOrdinaryConversation()
     {
-        var service = new DesktopCommandService();
+        var service = CreateService();
 
         var result = await service.TryExecuteAsync("Qual foi a última coisa que eu disse?");
 
@@ -47,5 +48,36 @@ public sealed class DesktopCommandServiceTests
         Assert.True(Path.IsPathRooted(resolved));
         Assert.True(File.Exists(resolved));
         Assert.EndsWith("chrome.exe", resolved, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static DesktopCommandService CreateService(bool allow = true) =>
+        new(new FakeAuthorizationService(allow), new FakeWorkspaceService());
+
+    private sealed class FakeAuthorizationService(bool allow) : IAuthorizationService
+    {
+        public Task<bool> RequestAsync(
+            AuthorizationRequest request,
+            CancellationToken cancellationToken = default) => Task.FromResult(allow);
+    }
+
+    private sealed class FakeWorkspaceService : IWorkspaceService
+    {
+        public WorkspaceContext? Current => null;
+        public Task<WorkspaceContext> OpenAsync(string rootPath, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+        public Task<WorkspaceContext> CreateAsync(string projectName, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+        public Task ClearAsync() => Task.CompletedTask;
+        public Task<string?> CreateBackupAsync(
+            IEnumerable<string>? targets = null,
+            CancellationToken cancellationToken = default) => Task.FromResult<string?>(null);
+        public IReadOnlyList<string> GetBackups() => [];
+        public Task RestoreBackupAsync(string backupPath, CancellationToken cancellationToken = default) =>
+            Task.CompletedTask;
+        public Task<string> BuildRelevantContextAsync(
+            string query, int maxCharacters = 35000, CancellationToken cancellationToken = default) =>
+            Task.FromResult(string.Empty);
+        public Task<string> ProcessAgentResponseAsync(
+            string response, CancellationToken cancellationToken = default) => Task.FromResult(response);
     }
 }

@@ -5,6 +5,7 @@ using VORTEX.ViewModels;
 using System.Diagnostics;
 using System.Windows.Threading;
 using System.IO;
+using Microsoft.Win32;
 
 namespace VORTEX.UI;
 
@@ -83,10 +84,63 @@ public partial class MainWindow
         ChatInput.Focus();
     }
 
-    private void Files_Click(object sender, RoutedEventArgs e)
+    private async void Files_Click(object sender, RoutedEventArgs e)
     {
         var downloads = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
+        var authorization = App.ServiceProvider.GetRequiredService<IAuthorizationService>();
+        if (!await authorization.RequestAsync(new(
+                "Acesso a pastas", "Abrir Downloads",
+                "O Explorador de Arquivos será aberto na pasta Downloads.", [downloads])))
+            return;
         Process.Start(new ProcessStartInfo(downloads) { UseShellExecute = true });
+    }
+
+    private void Backups_Click(object sender, RoutedEventArgs e)
+    {
+        var workspace = App.ServiceProvider.GetRequiredService<IWorkspaceService>();
+        if (workspace.Current == null)
+        {
+            MessageBox.Show(this, "Abra uma Workspace antes de acessar backups.", "VORTEX",
+                MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+        new BackupsWindow(workspace) { Owner = this }.ShowDialog();
+    }
+
+    private async void NewConversation_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new NewConversationWindow { Owner = this };
+        if (dialog.ShowDialog() != true) return;
+        try
+        {
+            if (dialog.Choice == "blank")
+            {
+                await ViewModel.StartBlankConversationAsync();
+                return;
+            }
+            if (dialog.Choice == "open")
+            {
+                var folderDialog = new OpenFolderDialog
+                {
+                    Title = "Selecione a pasta do projeto",
+                    Multiselect = false
+                };
+                if (folderDialog.ShowDialog(this) == true)
+                    await ViewModel.OpenWorkspaceAsync(folderDialog.FolderName);
+                return;
+            }
+            if (dialog.Choice == "create")
+                await ViewModel.CreateWorkspaceAsync(dialog.ProjectName);
+        }
+        catch (OperationCanceledException)
+        {
+            // O modal de autorização já informou a decisão do usuário.
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, ex.Message, "Não foi possível abrir a Workspace",
+                MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 }

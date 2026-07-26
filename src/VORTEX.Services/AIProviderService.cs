@@ -10,11 +10,16 @@ namespace VORTEX.Services
     {
         private readonly IEnumerable<IAIProvider> _providers;
         private readonly IDatabaseService _databaseService;
+        private readonly IWorkspaceService _workspaceService;
 
-        public AIProviderService(IEnumerable<IAIProvider> providers, IDatabaseService databaseService)
+        public AIProviderService(
+            IEnumerable<IAIProvider> providers,
+            IDatabaseService databaseService,
+            IWorkspaceService workspaceService)
         {
             _providers = providers;
             _databaseService = databaseService;
+            _workspaceService = workspaceService;
         }
 
         public IEnumerable<IAIProvider> GetAvailableProviders() => _providers;
@@ -44,17 +49,54 @@ namespace VORTEX.Services
                 transcript = transcript[^16000..];
             }
 
-            var contextualPrompt = $"""
+            var workspaceContext = await BuildWorkspaceContextAsync(prompt);
+            var contextualPrompt = $$"""
                 Use o histórico abaixo para manter continuidade. A última mensagem é o pedido atual.
                 Não diga que esqueceu informações presentes neste histórico.
 
+                WORKSPACE ATUAL:
+                {{workspaceContext}}
+
+                MODO AGENTE:
+                Quando o usuário pedir alterações no projeto, analise os arquivos fornecidos e proponha mudanças completas.
+                Para aplicar arquivos, inclua ao FINAL um bloco exatamente neste formato:
+                <vortex-file-actions>
+                [
+                  {"operation":"write","path":"caminho/relativo.ext","content":"conteúdo completo do arquivo"},
+                  {"operation":"delete","path":"caminho/relativo.ext"},
+                  {"operation":"move","path":"origem.ext","destinationPath":"destino.ext"}
+                ]
+                </vortex-file-actions>
+                Use apenas caminhos relativos à Workspace. Em operações write, envie o conteúdo COMPLETO final.
+                O aplicativo mostrará o plano, pedirá autorização e criará backup antes de aplicar.
+                Se o pedido for apenas explicativo, não gere ações.
+
                 HISTÓRICO:
-                {transcript}
+                {{transcript}}
 
                 PEDIDO ATUAL:
-                {prompt}
+                {{prompt}}
                 """;
             return await provider.GetResponseAsync(primary.ApiKey, primary.Model, contextualPrompt);
+        }
+
+        private async Task<string> BuildWorkspaceContextAsync(string prompt)
+        {
+            var workspace = _workspaceService.Current;
+            if (workspace == null) return "Nenhuma Workspace vinculada.";
+            var files = string.Join("\n", workspace.Files.Take(1200).Select(file => $"- {file}"));
+            if (files.Length > 14000) files = files[..14000] + "\n[lista reduzida]";
+            var relevantContents = await _workspaceService.BuildRelevantContextAsync(prompt);
+            return $"""
+                Nome: {workspace.Name}
+                Raiz: {workspace.RootPath}
+                {workspace.ArchitectureSummary}
+                Arquivos indexados:
+                {files}
+
+                CONTEÚDO DOS ARQUIVOS MAIS RELEVANTES:
+                {relevantContents}
+                """;
         }
     }
 }

@@ -2,6 +2,25 @@
 
 Agente pessoal de IA para Windows, construído em C# com WPF e .NET 8.
 
+## VORTEX Workspace 1.2
+
+O modo Workspace transforma o chat em um agente de desenvolvimento:
+
+- Modal de autorização para ler, criar, editar, excluir e mover arquivos.
+- Autorização para comandos, programas, pastas e acesso à internet.
+- A permissão vale somente para a ação apresentada no modal.
+- Nova Conversa permite começar sem projeto, abrir uma pasta ou criar um projeto.
+- Projetos novos são criados em `Documentos\VORTEX\Projetos`.
+- Indexação de até 20 mil arquivos, ignorando saídas geradas e dependências vendorizadas.
+- Detecção automática de linguagens, frameworks e manifestos de dependências.
+- Workspace atual persistida entre mensagens e reinicializações.
+- Seleção dos arquivos mais relevantes para cada solicitação.
+- Conteúdo real dos arquivos relevantes enviado ao modelo.
+- Planos estruturados de criação, edição, exclusão e movimentação.
+- Modal mostra todos os caminhos antes da aplicação.
+- Backup completo antes de qualquer plano de alteração.
+- Tela para selecionar e restaurar backups anteriores.
+
 ## O que já funciona
 
 - Chat com OpenAI e Groq.

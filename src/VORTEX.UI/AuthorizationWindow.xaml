@@ -1,0 +1,47 @@
+<Window x:Class="VORTEX.UI.AuthorizationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Autorização do VORTEX" Width="590" Height="470"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+        ShowInTaskbar="False" Background="#090D16" Foreground="#F4F7FC">
+    <Grid Margin="25">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Width="52" Height="52" CornerRadius="16" HorizontalAlignment="Left"
+                Background="#26205D85">
+            <TextBlock Text="!" FontSize="25" FontWeight="Bold" Foreground="#7DEBFF"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Border>
+        <StackPanel Margin="66,2,0,0">
+            <TextBlock x:Name="TitleText" FontSize="21" FontWeight="SemiBold"/>
+            <TextBlock x:Name="CategoryText" Foreground="#69E2FA" Margin="0,5,0,0"/>
+        </StackPanel>
+
+        <TextBlock x:Name="DescriptionText" Grid.Row="1" TextWrapping="Wrap"
+                   Foreground="#B0BAC9" Margin="0,22,0,16" LineHeight="20"/>
+
+        <TextBlock Grid.Row="2" Text="O VORTEX solicita acesso a:" FontWeight="SemiBold"
+                   Margin="0,0,0,8"/>
+        <Border Grid.Row="3" Background="#121A28" BorderBrush="#2A3850"
+                BorderThickness="1" CornerRadius="12" Padding="12">
+            <ListBox x:Name="TargetsList" Background="Transparent" BorderThickness="0"
+                     Foreground="#DDE5F0" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+        </Border>
+
+        <Grid Grid.Row="4" Margin="0,20,0,0">
+            <TextBlock Text="A autorização vale somente para esta ação."
+                       Foreground="#79869A" VerticalAlignment="Center" FontSize="11"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Negar" Click="Deny_Click" Padding="20,9" Margin="0,0,10,0"/>
+                <Button Content="Autorizar esta ação" Click="Allow_Click"
+                        Padding="20,9" Background="#236A8B" Foreground="White"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

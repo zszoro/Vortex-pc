@@ -1,0 +1,61 @@
+<Window x:Class="VORTEX.UI.NewConversationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Nova conversa" Width="670" Height="590"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+        ShowInTaskbar="False" Background="#090D16" Foreground="#F4F7FC">
+    <Grid Margin="28">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <StackPanel>
+            <TextBlock Text="Nova conversa" FontSize="27" FontWeight="SemiBold"/>
+            <TextBlock Text="Escolha como o VORTEX deve começar a trabalhar."
+                       Foreground="#94A0B2" Margin="0,7,0,22"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1">
+            <Button Click="Blank_Click" Padding="18" Margin="0,0,0,12"
+                    HorizontalContentAlignment="Stretch">
+                <StackPanel>
+                    <TextBlock Text="Começar do zero" FontSize="17" FontWeight="SemiBold"/>
+                    <TextBlock Text="Cria uma conversa vazia, sem pasta ou projeto associado."
+                               Foreground="#93A0B3" Margin="0,5,0,0"/>
+                </StackPanel>
+            </Button>
+            <Button Click="Open_Click" Padding="18" Margin="0,0,0,12"
+                    HorizontalContentAlignment="Stretch">
+                <StackPanel>
+                    <TextBlock Text="Abrir projeto existente" FontSize="17" FontWeight="SemiBold"/>
+                    <TextBlock Text="Selecione uma pasta para indexar linguagens, frameworks, arquivos e dependências."
+                               Foreground="#93A0B3" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Button>
+            <Border Background="#121A28" BorderBrush="#2B3A53" BorderThickness="1"
+                    CornerRadius="10" Padding="18">
+                <StackPanel>
+                    <TextBlock Text="Criar novo projeto" FontSize="17" FontWeight="SemiBold"/>
+                    <TextBlock Text="O projeto será criado em Documentos\VORTEX\Projetos."
+                               Foreground="#93A0B3" Margin="0,5,0,12"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="ProjectNameInput" Padding="12,9"
+                                 Background="#0B111D" Foreground="White"
+                                 BorderBrush="#33445F"/>
+                        <Button Grid.Column="1" Content="Criar projeto" Click="Create_Click"
+                                Padding="16,9" Margin="10,0,0,0"
+                                Background="#256889" Foreground="White"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <Button Grid.Row="2" Content="Cancelar" Click="Cancel_Click"
+                HorizontalAlignment="Right" Padding="18,8" Margin="0,18,0,0"/>
+    </Grid>
+</Window>

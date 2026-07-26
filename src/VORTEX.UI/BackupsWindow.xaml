@@ -1,0 +1,27 @@
+<Window x:Class="VORTEX.UI.BackupsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Backups da Workspace" Width="700" Height="500"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="#090D16" Foreground="#F4F7FC">
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <StackPanel>
+            <TextBlock Text="Backups da Workspace" FontSize="24" FontWeight="SemiBold"/>
+            <TextBlock Text="Selecione um ponto para restaurar completamente o código indexado."
+                       Foreground="#95A1B3" Margin="0,6,0,18"/>
+        </StackPanel>
+        <ListBox x:Name="BackupsList" Grid.Row="1" Background="#111927"
+                 BorderBrush="#2B3A53" Foreground="White" Padding="8"/>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right"
+                    Margin="0,18,0,0">
+            <Button Content="Fechar" Click="Close_Click" Padding="18,8" Margin="0,0,10,0"/>
+            <Button Content="Restaurar selecionado" Click="Restore_Click"
+                    Padding="18,8" Background="#8B3F4C" Foreground="White"/>
+        </StackPanel>
+    </Grid>
+</Window>

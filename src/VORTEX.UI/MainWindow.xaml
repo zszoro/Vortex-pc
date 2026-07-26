@@ -65,15 +65,29 @@
                         </StackPanel>
                     </StackPanel>
 
-                    <Button Grid.Row="1" Content="+  Nova conversa" Command="{Binding NewConversationCommand}"
-                            Background="#1E55E6FF" Foreground="#DFFAFF" BorderBrush="#4455E6FF"
-                            BorderThickness="1" Padding="14,11" Margin="0,0,0,20"/>
+                    <StackPanel Grid.Row="1" Margin="0,0,0,16">
+                        <Button Content="+  Nova conversa" Click="NewConversation_Click"
+                                Background="#1E55E6FF" Foreground="#DFFAFF" BorderBrush="#4455E6FF"
+                                BorderThickness="1" Padding="14,11" Margin="0,0,0,10"/>
+                        <Border Background="#101B2B" CornerRadius="10" Padding="10">
+                            <StackPanel>
+                                <TextBlock Text="WORKSPACE" FontSize="8" Foreground="#55E6FF"
+                                           FontWeight="Bold"/>
+                                <TextBlock Text="{Binding WorkspaceName}" FontSize="11"
+                                           FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                           Margin="0,3,0,0"/>
+                                <TextBlock Text="{Binding WorkspacePath}" FontSize="8"
+                                           Foreground="#7E899B" TextTrimming="CharacterEllipsis"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
 
                     <StackPanel Grid.Row="2">
                         <Button Style="{StaticResource NavButtonStyle}" Content="●  Conversa" Click="FocusChat_Click"/>
                         <Button Style="{StaticResource NavButtonStyle}" Content="◈  Memória" Click="Memory_Click"/>
                         <Button Style="{StaticResource NavButtonStyle}" Content="⌁  Automações" Click="Automations_Click"/>
                         <Button Style="{StaticResource NavButtonStyle}" Content="▣  Meus arquivos" Click="Files_Click"/>
+                        <Button Style="{StaticResource NavButtonStyle}" Content="↶  Backups" Click="Backups_Click"/>
                         <Button Style="{StaticResource NavButtonStyle}" Content="›_  Terminal" Click="Terminal_Click"/>
                         <Button Style="{StaticResource NavButtonStyle}" Content="◇  Resumir conversa" Click="Summarize_Click"/>
                     </StackPanel>
