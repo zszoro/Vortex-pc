@@ -17,12 +17,9 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <Grid Width="58" Height="58">
-                <Ellipse Fill="#1ED760"/>
-                <TextBlock Text="≋" FontSize="42" FontWeight="Bold" Foreground="#0B0B0D"
-                           HorizontalAlignment="Center" VerticalAlignment="Center"
-                           Margin="0,-9,0,0"/>
-            </Grid>
+            <Image Source="/VORTEX.UI;component/Assets/spotify.png"
+                   Width="58" Height="58" Stretch="Uniform"
+                   RenderOptions.BitmapScalingMode="HighQuality"/>
             <StackPanel Grid.Column="1" Margin="16,0">
                 <TextBlock Text="Spotify × VORTEX" FontSize="26" FontWeight="Bold"/>
                 <TextBlock x:Name="ConnectionText" Text="Conecte sua conta quando quiser usar música."
@@ -45,9 +42,11 @@
                     <Border Width="120" Height="120" CornerRadius="20" Background="#24242A">
                         <Grid>
                             <Image x:Name="AlbumArt" Stretch="UniformToFill"/>
-                            <Ellipse Width="75" Height="75" Fill="#1ED760" Opacity=".14"/>
-                            <TextBlock x:Name="FallbackNote" Text="♫" FontSize="52" Foreground="#1ED760"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <Image x:Name="FallbackNote"
+                                   Source="/VORTEX.UI;component/Assets/spotify.png"
+                                   Width="76" Height="76" Stretch="Uniform"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   RenderOptions.BitmapScalingMode="HighQuality"/>
                         </Grid>
                     </Border>
                     <TextBlock x:Name="TrackText" Text="Nenhuma música ativa"

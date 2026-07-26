@@ -142,8 +142,15 @@
                         <Button Style="{StaticResource NavButtonStyle}" Content="●  Conversa" Click="FocusChat_Click"/>
                         <Button Style="{StaticResource NavButtonStyle}" Content="◈  Memória" Click="Memory_Click"/>
                         <Button Style="{StaticResource NavButtonStyle}" Content="⌁  Automações" Click="Automations_Click"/>
-                        <Button Style="{StaticResource NavButtonStyle}" Content="●  Spotify"
-                                Foreground="#1ED760" Click="Spotify_Click"/>
+                        <Button Style="{StaticResource NavButtonStyle}"
+                                Foreground="#1ED760" Click="Spotify_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <Image Source="/VORTEX.UI;component/Assets/spotify.png"
+                                       Width="19" Height="19" Margin="0,0,10,0"
+                                       RenderOptions.BitmapScalingMode="HighQuality"/>
+                                <TextBlock Text="Spotify" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
                         <Button Style="{StaticResource NavButtonStyle}" Content="✦  Planejamento"
                                 Foreground="#B7A9FF" Click="Planning_Click"/>
                         <Button Style="{StaticResource NavButtonStyle}" Content="▣  Meus arquivos" Click="Files_Click"/>
@@ -160,12 +167,21 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
-                                <StackPanel>
-                                    <TextBlock Text="{Binding SpotifyTrack}" FontSize="11"
-                                               FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
-                                    <TextBlock Text="{Binding SpotifyArtist}" FontSize="9"
-                                               Foreground="#8A8A8A" TextTrimming="CharacterEllipsis"/>
-                                </StackPanel>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Image Source="/VORTEX.UI;component/Assets/spotify.png"
+                                           Width="28" Height="28" Margin="0,0,9,0"
+                                           RenderOptions.BitmapScalingMode="HighQuality"/>
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="{Binding SpotifyTrack}" FontSize="11"
+                                                   FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding SpotifyArtist}" FontSize="9"
+                                                   Foreground="#8A8A8A" TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                </Grid>
                                 <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,7,0,0">
                                     <Button Content="▶/Ⅱ" Command="{Binding SpotifyPlayPauseCommand}"
                                             ToolTip="Tocar ou pausar" Width="48" Height="25"
