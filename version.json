@@ -1,6 +1,6 @@
 {
-  "version": "1.7.6",
-  "title": "Atualizacao VORTEX 1.7.6 - Automacao Discord",
-  "notes": "O VORTEX agora prepara mensagens no Discord pela GUI e pede confirmacao final antes de enviar.",
+  "version": "1.7.7",
+  "title": "Atualizacao VORTEX 1.7.7 - Discord e Spotify",
+  "notes": "Corrige a digitacao automatica no Discord usando clipboard temporario e remove o fundo branco dos icones do Spotify.",
   "downloadUrl": "https://github.com/zszoro/Vortex-pc/releases"
 }

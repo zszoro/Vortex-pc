@@ -9,10 +9,12 @@ public sealed class GuiAutomationService : IGuiAutomationService
     private const int SwRestore = 9;
     private const ushort VkControl = 0x11;
     private const ushort VkK = 0x4B;
+    private const ushort VkV = 0x56;
     private const ushort VkReturn = 0x0D;
     private const uint InputKeyboard = 1;
     private const uint KeyEventFKeyUp = 0x0002;
-    private const uint KeyEventFUnicode = 0x0004;
+    private const uint CfUnicodeText = 13;
+    private const uint GmemMoveable = 0x0002;
 
     public async Task PrepareDiscordMessageAsync(
         string recipient,
@@ -33,11 +35,11 @@ public sealed class GuiAutomationService : IGuiAutomationService
 
         SendChord(VkControl, VkK);
         await Task.Delay(250, cancellationToken);
-        SendText(recipient);
+        PasteText(recipient);
         await Task.Delay(900, cancellationToken);
         SendKey(VkReturn);
         await Task.Delay(1000, cancellationToken);
-        SendText(message);
+        PasteText(message);
     }
 
     public async Task ConfirmDiscordSendAsync(CancellationToken cancellationToken = default)
@@ -90,7 +92,7 @@ public sealed class GuiAutomationService : IGuiAutomationService
                 Keyboard = new KeyboardInput
                 {
                     VirtualKey = key,
-                    Scan = '\0',
+                    Scan = 0,
                     Flags = flags,
                     Time = 0,
                     ExtraInfo = UIntPtr.Zero
@@ -100,33 +102,40 @@ public sealed class GuiAutomationService : IGuiAutomationService
         SendInputs([input]);
     }
 
-    private static void SendText(string text)
+    private static void PasteText(string text)
     {
-        var inputs = new List<Input>(text.Length * 2);
-        foreach (var character in text)
-        {
-            inputs.Add(UnicodeInput(character, false));
-            inputs.Add(UnicodeInput(character, true));
-        }
-        SendInputs(inputs.ToArray());
+        SetClipboardText(text);
+        SendChord(VkControl, VkV);
     }
 
-    private static Input UnicodeInput(char character, bool keyUp) =>
-        new()
+    private static void SetClipboardText(string text)
+    {
+        if (!OpenClipboard(IntPtr.Zero))
+            throw new InvalidOperationException("Não consegui acessar a área de transferência do Windows.");
+
+        try
         {
-            Type = InputKeyboard,
-            Data = new InputUnion
-            {
-                Keyboard = new KeyboardInput
-                {
-                    VirtualKey = 0,
-                    Scan = character,
-                    Flags = KeyEventFUnicode | (keyUp ? KeyEventFKeyUp : 0),
-                    Time = 0,
-                    ExtraInfo = UIntPtr.Zero
-                }
-            }
-        };
+            EmptyClipboard();
+            var bytes = System.Text.Encoding.Unicode.GetBytes(text + '\0');
+            var handle = GlobalAlloc(GmemMoveable, (UIntPtr)bytes.Length);
+            if (handle == IntPtr.Zero)
+                throw new InvalidOperationException("Não consegui reservar memória para a área de transferência.");
+
+            var pointer = GlobalLock(handle);
+            if (pointer == IntPtr.Zero)
+                throw new InvalidOperationException("Não consegui bloquear a memória da área de transferência.");
+
+            Marshal.Copy(bytes, 0, pointer, bytes.Length);
+            GlobalUnlock(handle);
+
+            if (SetClipboardData(CfUnicodeText, handle) == IntPtr.Zero)
+                throw new InvalidOperationException("Não consegui copiar o texto para a área de transferência.");
+        }
+        finally
+        {
+            CloseClipboard();
+        }
+    }
 
     private static void SendInputs(Input[] inputs)
     {
@@ -143,6 +152,27 @@ public sealed class GuiAutomationService : IGuiAutomationService
 
     [DllImport("user32.dll", SetLastError = true)]
     private static extern uint SendInput(uint nInputs, Input[] pInputs, int cbSize);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool OpenClipboard(IntPtr hWndNewOwner);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool EmptyClipboard();
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern IntPtr SetClipboardData(uint uFormat, IntPtr hMem);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool CloseClipboard();
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern IntPtr GlobalAlloc(uint uFlags, UIntPtr dwBytes);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern IntPtr GlobalLock(IntPtr hMem);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool GlobalUnlock(IntPtr hMem);
 
     [StructLayout(LayoutKind.Sequential)]
     private struct Input
@@ -161,7 +191,7 @@ public sealed class GuiAutomationService : IGuiAutomationService
     private struct KeyboardInput
     {
         public ushort VirtualKey;
-        public char Scan;
+        public ushort Scan;
         public uint Flags;
         public uint Time;
         public UIntPtr ExtraInfo;
