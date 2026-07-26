@@ -41,7 +41,7 @@
                 VerticalAlignment="Bottom" Background="Transparent"
                 MouseLeftButtonDown="Pet_MouseLeftButtonDown"
                 MouseRightButtonDown="Pet_MouseRightButtonDown">
-            <local:VortexCore State="{Binding Status}" Width="105" Height="105"/>
+            <local:VortexCore State="{Binding Status}" Appearance="{Binding PetAppearance}" Width="105" Height="105"/>
             <Border.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="Abrir VORTEX" Click="OpenMain_Click"/>

@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.Win32;
 using VORTEX.Core;
 
 namespace VORTEX.Services;
@@ -160,7 +161,7 @@ public sealed partial class DesktopCommandService : IDesktopCommandService
     private static DesktopCommandResult OpenApplication(string requested)
     {
         var app = requested.Trim().Trim('.', '"', '\'').ToLowerInvariant();
-        var executable = app switch
+        var executableName = app switch
         {
             "bloco de notas" or "notepad" => "notepad.exe",
             "calculadora" or "calculator" => "calc.exe",
@@ -168,11 +169,18 @@ public sealed partial class DesktopCommandService : IDesktopCommandService
             "paint" => "mspaint.exe",
             "terminal" or "powershell" => "powershell.exe",
             "prompt" or "cmd" => "cmd.exe",
+            "chrome" or "google chrome" => "chrome.exe",
+            "edge" or "microsoft edge" => "msedge.exe",
+            "firefox" or "mozilla firefox" => "firefox.exe",
+            "spotify" => "Spotify.exe",
+            "discord" => "Discord.exe",
+            "visual studio code" or "vs code" or "vscode" => "Code.exe",
             "configurações" or "configuracoes" => "ms-settings:",
             _ => requested.Trim().Trim('"', '\'')
         };
         try
         {
+            var executable = ResolveInstalledApplication(executableName);
             Process.Start(new ProcessStartInfo(executable) { UseShellExecute = true });
             return new(true, $"Aplicativo aberto: {requested}");
         }
@@ -180,6 +188,64 @@ public sealed partial class DesktopCommandService : IDesktopCommandService
         {
             return new(true, $"Não consegui abrir “{requested}”: {ex.Message}", true);
         }
+    }
+
+    internal static string ResolveInstalledApplication(string executable)
+    {
+        if (executable.Contains(':') || Path.IsPathRooted(executable)) return executable;
+
+        if (OperatingSystem.IsWindows())
+        {
+            foreach (var root in new[]
+                     {
+                         @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\App Paths",
+                         @"HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\App Paths",
+                         @"HKEY_LOCAL_MACHINE\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\App Paths"
+                     })
+            {
+                var registered = Registry.GetValue($@"{root}\{executable}", null, null) as string;
+                if (!string.IsNullOrWhiteSpace(registered) && File.Exists(registered))
+                    return registered;
+            }
+        }
+
+        var local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        var programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+        var programFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+        string[] candidates = executable.ToLowerInvariant() switch
+        {
+            "chrome.exe" =>
+            [
+                Path.Combine(programFiles, "Google", "Chrome", "Application", "chrome.exe"),
+                Path.Combine(programFilesX86, "Google", "Chrome", "Application", "chrome.exe"),
+                Path.Combine(local, "Google", "Chrome", "Application", "chrome.exe")
+            ],
+            "msedge.exe" =>
+            [
+                Path.Combine(programFilesX86, "Microsoft", "Edge", "Application", "msedge.exe"),
+                Path.Combine(programFiles, "Microsoft", "Edge", "Application", "msedge.exe")
+            ],
+            "firefox.exe" =>
+            [
+                Path.Combine(programFiles, "Mozilla Firefox", "firefox.exe"),
+                Path.Combine(programFilesX86, "Mozilla Firefox", "firefox.exe")
+            ],
+            "code.exe" =>
+            [
+                Path.Combine(local, "Programs", "Microsoft VS Code", "Code.exe"),
+                Path.Combine(programFiles, "Microsoft VS Code", "Code.exe")
+            ],
+            "spotify.exe" =>
+            [
+                Path.Combine(local, "Microsoft", "WindowsApps", "Spotify.exe")
+            ],
+            "discord.exe" =>
+            [
+                Path.Combine(local, "Discord", "Update.exe")
+            ],
+            _ => []
+        };
+        return candidates.FirstOrDefault(File.Exists) ?? executable;
     }
 
     private static bool TryGetTerminalCommand(string text, out string command)

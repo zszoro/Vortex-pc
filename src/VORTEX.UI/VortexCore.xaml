@@ -55,11 +55,11 @@
                 <Grid.RenderTransform>
                     <RotateTransform x:Name="RingRotation"/>
                 </Grid.RenderTransform>
-                <Ellipse Margin="10" Stroke="#55FFFFFF" StrokeThickness="2" StrokeDashArray="2 7"/>
-                <Ellipse Margin="19" Stroke="#28FFFFFF" StrokeThickness="1" StrokeDashArray="1 5"/>
+                <Ellipse x:Name="RingOne" Margin="10" Stroke="#55FFFFFF" StrokeThickness="2" StrokeDashArray="2 7"/>
+                <Ellipse x:Name="RingTwo" Margin="19" Stroke="#28FFFFFF" StrokeThickness="1" StrokeDashArray="1 5"/>
             </Grid>
 
-            <Grid Margin="40,52,40,38">
+            <Grid x:Name="FaceGrid" Margin="40,52,40,38">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
                     <ColumnDefinition/>

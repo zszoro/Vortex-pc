@@ -18,6 +18,9 @@ namespace VORTEX.UI
             ConfigureServices(services);
             ServiceProvider = services.BuildServiceProvider();
             ShutdownMode = ShutdownMode.OnMainWindowClose;
+            var uiPreferences = UiPreferences.Load();
+            UiPreferences.ApplyTheme(uiPreferences.Theme);
+            ServiceProvider.GetRequiredService<MainViewModel>().PetAppearance = uiPreferences.PetAppearance;
 
             var db = ServiceProvider.GetRequiredService<IDatabaseService>();
             await db.InitializeAsync();

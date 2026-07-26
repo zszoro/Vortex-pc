@@ -6,7 +6,7 @@
     Title="VORTEX — Agente pessoal" Height="800" Width="1240"
     MinHeight="680" MinWidth="980" WindowStartupLocation="CenterScreen"
     WindowStyle="SingleBorderWindow" ResizeMode="CanResize"
-    Background="#070A12">
+    Background="{DynamicResource VortexBackgroundBrush}">
 
     <Window.Resources>
         <Style x:Key="MessageCard" TargetType="Border">
@@ -28,7 +28,7 @@
         </Style>
     </Window.Resources>
 
-    <Grid Background="#F2070A12">
+    <Grid Background="{DynamicResource VortexBackgroundBrush}">
         <Ellipse Width="700" Height="700" HorizontalAlignment="Right" VerticalAlignment="Top"
                  Margin="0,-420,-280,0" IsHitTestVisible="False">
             <Ellipse.Fill>
@@ -70,9 +70,12 @@
                             BorderThickness="1" Padding="14,11" Margin="0,0,0,20"/>
 
                     <StackPanel Grid.Row="2">
-                        <Button Style="{StaticResource NavButtonStyle}" Content="●  Conversa"/>
-                        <Button Style="{StaticResource NavButtonStyle}" Content="◈  Memória"/>
-                        <Button Style="{StaticResource NavButtonStyle}" Content="⌁  Automações"/>
+                        <Button Style="{StaticResource NavButtonStyle}" Content="●  Conversa" Click="FocusChat_Click"/>
+                        <Button Style="{StaticResource NavButtonStyle}" Content="◈  Memória" Click="Memory_Click"/>
+                        <Button Style="{StaticResource NavButtonStyle}" Content="⌁  Automações" Click="Automations_Click"/>
+                        <Button Style="{StaticResource NavButtonStyle}" Content="▣  Meus arquivos" Click="Files_Click"/>
+                        <Button Style="{StaticResource NavButtonStyle}" Content="›_  Terminal" Click="Terminal_Click"/>
+                        <Button Style="{StaticResource NavButtonStyle}" Content="◇  Resumir conversa" Click="Summarize_Click"/>
                     </StackPanel>
 
                     <Border Grid.Row="3" Background="#0EFFFFFF" CornerRadius="14" Padding="12">
@@ -109,7 +112,7 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <local:VortexCore State="{Binding Status}" Width="92" Height="92"
+                        <local:VortexCore State="{Binding Status}" Appearance="{Binding PetAppearance}" Width="112" Height="112"
                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                             <TextBlock Text="Conversa principal" FontSize="17" FontWeight="SemiBold"/>
@@ -145,7 +148,7 @@
                     <Grid Grid.Row="2">
                         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
                                     Visibility="{Binding Messages.Count, Converter={StaticResource CountToVisibilityConverter}}">
-                            <local:VortexCore State="{Binding Status}" Width="170" Height="170"/>
+                            <local:VortexCore State="{Binding Status}" Appearance="{Binding PetAppearance}" Width="220" Height="220"/>
                             <TextBlock Text="O que vamos construir hoje?" FontSize="24" FontWeight="SemiBold"
                                        HorizontalAlignment="Center" Margin="0,18,0,7"/>
                             <TextBlock Text="Pergunte, planeje ou transforme uma ideia em ação."
@@ -169,6 +172,19 @@
                                             <TextBlock Text="{Binding Role}" FontSize="10" FontWeight="Bold"
                                                        Foreground="{StaticResource AccentBrush}" Margin="0,0,0,6"/>
                                             <TextBlock Text="{Binding Content}" TextWrapping="Wrap" FontSize="14" LineHeight="21"/>
+                                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                                <Button Content="Copiar" Click="CopyMessage_Click"
+                                                        Tag="{Binding Content}" Padding="8,3" Margin="0,0,6,0"
+                                                        FontSize="10" Background="Transparent"/>
+                                                <Button Content="Mencionar"
+                                                        Command="{Binding DataContext.MentionMessageCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                        CommandParameter="{Binding}" Padding="8,3" Margin="0,0,6,0"
+                                                        FontSize="10" Background="Transparent"/>
+                                                <Button Content="Gerar outra resposta"
+                                                        Command="{Binding DataContext.RegenerateResponseCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                        CommandParameter="{Binding}" Padding="8,3"
+                                                        FontSize="10" Background="Transparent"/>
+                                            </StackPanel>
                                         </StackPanel>
                                     </Border>
                                 </DataTemplate>
@@ -177,21 +193,21 @@
                     </Grid>
 
                     <Grid Grid.Row="3" Margin="28,12,28,25">
-                        <Border Background="#E20B101B" CornerRadius="18" BorderBrush="#3055E6FF"
+                        <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="18" BorderBrush="#3055E6FF"
                                 BorderThickness="1" Padding="7">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <ui:TextBox Text="{Binding UserInput, UpdateSourceTrigger=PropertyChanged}"
-                                            PlaceholderText="Digite uma mensagem para o VORTEX..."
-                                            Background="Transparent" BorderThickness="0" Padding="15,12"
-                                            FontSize="14">
-                                    <ui:TextBox.InputBindings>
+                                <TextBox x:Name="ChatInput" Text="{Binding UserInput, UpdateSourceTrigger=PropertyChanged}"
+                                         Background="Transparent" Foreground="#F3F6FC" CaretBrush="#55E6FF"
+                                         BorderThickness="0" Padding="15,12" FontSize="14"
+                                         VerticalContentAlignment="Center" AcceptsReturn="False">
+                                    <TextBox.InputBindings>
                                         <KeyBinding Key="Enter" Command="{Binding SendMessageCommand}"/>
-                                    </ui:TextBox.InputBindings>
-                                </ui:TextBox>
+                                    </TextBox.InputBindings>
+                                </TextBox>
                                 <ui:Button Grid.Column="1" Icon="{ui:SymbolIcon Send24}" Command="{Binding SendMessageCommand}"
                                            Appearance="Primary" Width="43" Height="43" Margin="4"/>
                             </Grid>

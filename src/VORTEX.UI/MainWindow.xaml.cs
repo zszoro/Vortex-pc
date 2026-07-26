@@ -2,6 +2,9 @@ using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using VORTEX.Core;
 using VORTEX.ViewModels;
+using System.Diagnostics;
+using System.Windows.Threading;
+using System.IO;
 
 namespace VORTEX.UI;
 
@@ -9,6 +12,7 @@ public partial class MainWindow
 {
     private readonly IUpdateService _updateService;
     private AppUpdateInfo? _updateInfo;
+    private readonly DispatcherTimer _updateTimer;
 
     public MainWindow(MainViewModel viewModel, IUpdateService updateService)
     {
@@ -16,6 +20,10 @@ public partial class MainWindow
         _updateService = updateService;
         InitializeComponent();
         Loaded += async (_, _) => await CheckForUpdatesAsync();
+        _updateTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(3) };
+        _updateTimer.Tick += async (_, _) => await CheckForUpdatesAsync();
+        _updateTimer.Start();
+        Closed += (_, _) => _updateTimer.Stop();
     }
 
     private async Task CheckForUpdatesAsync()
@@ -39,4 +47,46 @@ public partial class MainWindow
 
     private void OpenUpdate_Click(object sender, RoutedEventArgs e) =>
         _updateService.OpenDownloadPage(_updateInfo?.DownloadUrl);
+
+    private void CopyMessage_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { Tag: string content } && !string.IsNullOrWhiteSpace(content))
+            Clipboard.SetText(content);
+    }
+
+    private MainViewModel ViewModel => (MainViewModel)DataContext;
+
+    private void FocusChat_Click(object sender, RoutedEventArgs e) => ChatInput.Focus();
+
+    private void Terminal_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.UserInput = "/terminal ";
+        ChatInput.Focus();
+        ChatInput.CaretIndex = ChatInput.Text.Length;
+    }
+
+    private void Memory_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.UserInput = "Lembre e organize os pontos mais importantes desta conversa: ";
+        ChatInput.Focus();
+    }
+
+    private void Automations_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.UserInput = "Crie uma automação para: ";
+        ChatInput.Focus();
+    }
+
+    private void Summarize_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.UserInput = "Resuma nossa conversa e liste as próximas ações.";
+        ChatInput.Focus();
+    }
+
+    private void Files_Click(object sender, RoutedEventArgs e)
+    {
+        var downloads = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
+        Process.Start(new ProcessStartInfo(downloads) { UseShellExecute = true });
+    }
 }

@@ -38,4 +38,14 @@ public sealed class DesktopCommandServiceTests
 
         Assert.False(result.Handled);
     }
+
+    [Fact]
+    public void ResolvesChromeOutsideTheApplicationDirectory()
+    {
+        var resolved = DesktopCommandService.ResolveInstalledApplication("chrome.exe");
+
+        Assert.True(Path.IsPathRooted(resolved));
+        Assert.True(File.Exists(resolved));
+        Assert.EndsWith("chrome.exe", resolved, StringComparison.OrdinalIgnoreCase);
+    }
 }

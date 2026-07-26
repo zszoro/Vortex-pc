@@ -17,11 +17,12 @@
             <Color x:Key="VortexCyan">#55E6FF</Color>
             <Color x:Key="VortexViolet">#8B7CFF</Color>
             <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource VortexSurface}"/>
+            <SolidColorBrush x:Key="VortexBackgroundBrush" Color="{StaticResource VortexBackground}"/>
             <SolidColorBrush x:Key="MutedTextBrush" Color="#8E99AB"/>
             <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource VortexCyan}"/>
 
             <Style x:Key="PanelStyle" TargetType="Border">
-                <Setter Property="Background" Value="#B3101522"/>
+                <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
                 <Setter Property="BorderBrush" Value="#22FFFFFF"/>
                 <Setter Property="BorderThickness" Value="1"/>
                 <Setter Property="CornerRadius" Value="20"/>

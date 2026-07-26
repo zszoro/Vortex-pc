@@ -15,6 +15,12 @@ Agente pessoal de IA para Windows, construído em C# com WPF e .NET 8.
 - Opção para manter o pet acima ou abaixo de outros aplicativos.
 - Verificação de versão por manifesto do GitHub.
 - Avisos de atualização na tela principal e nas configurações.
+- Resolução de aplicativos pelo registro do Windows e pastas de instalação.
+- Temas Vortex, Nebula, Oceano e Claro.
+- Aparências Orb, Cyber, Minimal e Ghost para o núcleo.
+- Ações de copiar, mencionar e regenerar em cada mensagem.
+- Ferramentas laterais para arquivos, terminal, memória, automações e resumo.
+- Verificação de atualização periódica sem reiniciar o aplicativo.
 - Executável autocontido para Windows x64.
 - Contexto das últimas mensagens enviado ao modelo.
 - Terminal PowerShell integrado ao chat.

@@ -16,6 +16,7 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private string _userInput = string.Empty;
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private string _lastAssistantMessage = "Olá! Clique com o botão direito para falar comigo.";
+    [ObservableProperty] private string _petAppearance = "Orb";
 
     public ObservableCollection<ChatMessage> Messages { get; } = [];
 
@@ -98,5 +99,25 @@ public partial class MainViewModel : ObservableObject
         await _dbService.ClearChatMessagesAsync();
         Messages.Clear();
         Status = "Online";
+    }
+
+    [RelayCommand]
+    private void MentionMessage(ChatMessage? message)
+    {
+        if (message == null) return;
+        var excerpt = message.Content.Length > 220 ? message.Content[..220] + "…" : message.Content;
+        UserInput = $"@{message.Role}: “{excerpt}”\n";
+    }
+
+    [RelayCommand]
+    private async Task RegenerateResponseAsync(ChatMessage? message)
+    {
+        if (IsBusy || message == null) return;
+        var index = Messages.IndexOf(message);
+        if (index < 0) index = Messages.Count;
+        var previousPrompt = Messages.Take(index).LastOrDefault(item => item.Role == "Você");
+        if (previousPrompt == null) return;
+        UserInput = previousPrompt.Content;
+        await SendMessageAsync();
     }
 }

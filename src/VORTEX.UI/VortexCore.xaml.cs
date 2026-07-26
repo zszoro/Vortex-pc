@@ -18,6 +18,16 @@ namespace VORTEX.UI
             set => SetValue(StateProperty, value);
         }
 
+        public static readonly DependencyProperty AppearanceProperty =
+            DependencyProperty.Register(nameof(Appearance), typeof(string), typeof(VortexCore),
+                new PropertyMetadata("Orb", OnAppearanceChanged));
+
+        public string Appearance
+        {
+            get => (string)GetValue(AppearanceProperty);
+            set => SetValue(AppearanceProperty, value);
+        }
+
         public VortexCore()
         {
             InitializeComponent();
@@ -30,6 +40,21 @@ namespace VORTEX.UI
             {
                 core.UpdateState(e.NewValue?.ToString() ?? "Online");
             }
+        }
+
+        private static void OnAppearanceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is VortexCore core) core.UpdateAppearance(e.NewValue?.ToString() ?? "Orb");
+        }
+
+        private void UpdateAppearance(string appearance)
+        {
+            FaceGrid.Visibility = appearance == "Minimal" ? Visibility.Collapsed : Visibility.Visible;
+            RingOne.Visibility = appearance == "Minimal" ? Visibility.Collapsed : Visibility.Visible;
+            RingTwo.StrokeDashArray = appearance == "Cyber"
+                ? new DoubleCollection([8, 2, 1, 2])
+                : new DoubleCollection([1, 5]);
+            PetBody.Opacity = appearance == "Ghost" ? 0.62 : 1;
         }
 
         private void UpdateState(string state)
