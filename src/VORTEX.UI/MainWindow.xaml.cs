@@ -6,11 +6,17 @@ using System.Diagnostics;
 using System.Windows.Threading;
 using System.IO;
 using Microsoft.Win32;
+using System.Runtime.InteropServices;
+using System.Windows.Input;
+using System.Windows.Media;
 
 namespace VORTEX.UI;
 
 public partial class MainWindow
 {
+    [DllImport("user32.dll")]
+    private static extern bool SetCursorPos(int x, int y);
+
     private readonly IUpdateService _updateService;
     private AppUpdateInfo? _updateInfo;
     private readonly DispatcherTimer _updateTimer;
@@ -66,11 +72,85 @@ public partial class MainWindow
 
     private void FocusChat_Click(object sender, RoutedEventArgs e) => ChatInput.Focus();
 
+    private void AddFile_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFileDialog
+        {
+            Title = "Adicionar arquivos à conversa",
+            Multiselect = true,
+            CheckFileExists = true
+        };
+        if (dialog.ShowDialog(this) != true) return;
+        var references = string.Join(" ", dialog.FileNames.Select(path => $"\"{path}\""));
+        ViewModel.UserInput = string.IsNullOrWhiteSpace(ViewModel.UserInput)
+            ? $"Analise os arquivos: {references}"
+            : $"{ViewModel.UserInput} {references}";
+        ChatInput.Focus();
+        ChatInput.CaretIndex = ChatInput.Text.Length;
+    }
+
+    private void SlashCommand_Click(object sender, RoutedEventArgs e)
+    {
+        if (!ViewModel.UserInput.StartsWith('/'))
+            ViewModel.UserInput = "/";
+        CommandPopup.IsOpen = true;
+        ChatInput.Focus();
+        ChatInput.CaretIndex = ChatInput.Text.Length;
+    }
+
+    private void CommandOption_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { Tag: string command })
+            ViewModel.UserInput = command;
+        CommandPopup.IsOpen = false;
+        ChatInput.Focus();
+        ChatInput.CaretIndex = ChatInput.Text.Length;
+    }
+
     private void Terminal_Click(object sender, RoutedEventArgs e)
     {
         ViewModel.UserInput = "/terminal ";
         ChatInput.Focus();
         ChatInput.CaretIndex = ChatInput.Text.Length;
+    }
+
+    private async void TestComputerUse_Click(object sender, RoutedEventArgs e)
+    {
+        var authorization = App.ServiceProvider.GetRequiredService<IAuthorizationService>();
+        if (!await authorization.RequestAsync(new(
+                "Teste do Computer Use",
+                "Mover o mouse e minimizar o VORTEX",
+                "O cursor será trocado pelo pet VORTEX, moverá até o botão minimizar e o app será minimizado. Nenhum outro aplicativo será controlado.",
+                ["Cursor do Windows", "Janela do VORTEX"])))
+            return;
+
+        var previousCursor = Mouse.OverrideCursor;
+        try
+        {
+            var cursorUri = new Uri("pack://application:,,,/VORTEX.UI;component/Assets/vortex-pet.cur");
+            using var stream = Application.GetResourceStream(cursorUri)?.Stream;
+            if (stream != null)
+                Mouse.OverrideCursor = new Cursor(stream);
+
+            var start = PointToScreen(Mouse.GetPosition(this));
+            var target = PointToScreen(new Point(Math.Max(0, ActualWidth - 132), 16));
+            const int frames = 26;
+            for (var frame = 1; frame <= frames; frame++)
+            {
+                var progress = frame / (double)frames;
+                var eased = 1 - Math.Pow(1 - progress, 3);
+                SetCursorPos(
+                    (int)(start.X + ((target.X - start.X) * eased)),
+                    (int)(start.Y + ((target.Y - start.Y) * eased)));
+                await Task.Delay(18);
+            }
+            await Task.Delay(220);
+            WindowState = WindowState.Minimized;
+        }
+        finally
+        {
+            Mouse.OverrideCursor = previousCursor;
+        }
     }
 
     private void Memory_Click(object sender, RoutedEventArgs e)

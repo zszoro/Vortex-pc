@@ -1,100 +1,97 @@
-using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 
-namespace VORTEX.UI
+namespace VORTEX.UI;
+
+public partial class VortexCore : UserControl
 {
-    public partial class VortexCore : UserControl
+    public static readonly DependencyProperty StateProperty =
+        DependencyProperty.Register(nameof(State), typeof(string), typeof(VortexCore),
+            new PropertyMetadata("Online", OnStateChanged));
+
+    public static readonly DependencyProperty AppearanceProperty =
+        DependencyProperty.Register(nameof(Appearance), typeof(string), typeof(VortexCore),
+            new PropertyMetadata("Vortex", OnAppearanceChanged));
+
+    public string State
     {
-        public static readonly DependencyProperty StateProperty =
-            DependencyProperty.Register("State", typeof(string), typeof(VortexCore), 
-                new PropertyMetadata("Online", OnStateChanged));
+        get => (string)GetValue(StateProperty);
+        set => SetValue(StateProperty, value);
+    }
 
-        public string State
+    public string Appearance
+    {
+        get => (string)GetValue(AppearanceProperty);
+        set => SetValue(AppearanceProperty, value);
+    }
+
+    public VortexCore()
+    {
+        InitializeComponent();
+        UpdateAppearance("Vortex");
+        UpdateState("Online");
+    }
+
+    private static void OnStateChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is VortexCore core)
+            core.UpdateState(e.NewValue?.ToString() ?? "Online");
+    }
+
+    private static void OnAppearanceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is VortexCore core)
+            core.UpdateAppearance(e.NewValue?.ToString() ?? "Vortex");
+    }
+
+    private void UpdateAppearance(string appearance)
+    {
+        PetImage.Opacity = appearance switch
         {
-            get => (string)GetValue(StateProperty);
-            set => SetValue(StateProperty, value);
-        }
+            "Ghost" => 0.62,
+            "Minimal" => 0.86,
+            _ => 1
+        };
+        PetGlow.BlurRadius = appearance == "Cyber" ? 32 : 22;
+    }
 
-        public static readonly DependencyProperty AppearanceProperty =
-            DependencyProperty.Register(nameof(Appearance), typeof(string), typeof(VortexCore),
-                new PropertyMetadata("Orb", OnAppearanceChanged));
+    private void UpdateState(string state)
+    {
+        var idle = (Storyboard)Resources["IdleAnimation"];
+        var working = (Storyboard)Resources["WorkingAnimation"];
+        idle.Stop(this);
+        working.Stop(this);
 
-        public string Appearance
+        switch (state)
         {
-            get => (string)GetValue(AppearanceProperty);
-            set => SetValue(AppearanceProperty, value);
+            case "Thinking":
+            case "Typing":
+                ApplyStateColor("#38BDF8");
+                working.Begin(this, true);
+                break;
+            case "Error":
+                ApplyStateColor("#EF4444");
+                idle.Begin(this, true);
+                break;
+            case "Offline":
+                ApplyStateColor("#52525B");
+                PetImage.Opacity = 0.58;
+                break;
+            default:
+                ApplyStateColor("#8B5CF6");
+                UpdateAppearance(Appearance);
+                idle.Begin(this, true);
+                break;
         }
+    }
 
-        public VortexCore()
-        {
-            InitializeComponent();
-            UpdateState("Online");
-        }
-
-        private static void OnStateChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            if (d is VortexCore core)
-            {
-                core.UpdateState(e.NewValue?.ToString() ?? "Online");
-            }
-        }
-
-        private static void OnAppearanceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            if (d is VortexCore core) core.UpdateAppearance(e.NewValue?.ToString() ?? "Orb");
-        }
-
-        private void UpdateAppearance(string appearance)
-        {
-            FaceGrid.Visibility = appearance == "Minimal" ? Visibility.Collapsed : Visibility.Visible;
-            RingOne.Visibility = appearance == "Minimal" ? Visibility.Collapsed : Visibility.Visible;
-            RingTwo.StrokeDashArray = appearance == "Cyber"
-                ? new DoubleCollection([8, 2, 1, 2])
-                : new DoubleCollection([1, 5]);
-            PetBody.Opacity = appearance == "Ghost" ? 0.62 : 1;
-        }
-
-        private void UpdateState(string state)
-        {
-            var onlineAnim = (Storyboard)Resources["OnlineAnimation"];
-            var thinkingAnim = (Storyboard)Resources["ThinkingAnimation"];
-
-            onlineAnim.Stop();
-            thinkingAnim.Stop();
-
-            switch (state)
-            {
-                case "Thinking":
-                case "Typing":
-                    ApplyColors("#A5F3FC", "#0284C7");
-                    thinkingAnim.Begin();
-                    break;
-                case "Error":
-                    ApplyColors("#FDA4AF", "#DC2626");
-                    onlineAnim.Begin();
-                    break;
-                case "Offline":
-                    ApplyColors("#434343", "#000000"); // Cinza/Preto
-                    break;
-                default:
-                    ApplyColors("#C4B5FD", "#7C3AED");
-                    onlineAnim.Begin();
-                    break;
-            }
-        }
-
-        private void ApplyColors(string color1, string color2)
-        {
-            var brush1 = (Color)ColorConverter.ConvertFromString(color1);
-            var brush2 = (Color)ColorConverter.ConvertFromString(color2);
-
-            CoreColor1.Color = brush1;
-            CoreColor2.Color = brush2;
-            HaloColor.Color = brush2;
-            CoreGlow.Color = brush2;
-        }
+    private void ApplyStateColor(string hex)
+    {
+        var color = (Color)ColorConverter.ConvertFromString(hex);
+        HaloInner.Color = color;
+        HaloOuter.Color = Color.FromArgb(0, color.R, color.G, color.B);
+        PetGlow.Color = color;
     }
 }

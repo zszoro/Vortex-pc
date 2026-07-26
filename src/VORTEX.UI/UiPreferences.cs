@@ -8,7 +8,7 @@ namespace VORTEX.UI;
 public sealed class UiPreferences
 {
     public string Theme { get; set; } = "Vortex";
-    public string PetAppearance { get; set; } = "Orb";
+    public string PetAppearance { get; set; } = "Vortex";
 
     private static string FilePath => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -38,7 +38,7 @@ public sealed class UiPreferences
             "Nebula" => ("#10071B", "#1B102C", "#F472D0", "#B7A4CA"),
             "Oceano" => ("#04131A", "#0A2530", "#22D3EE", "#91B8C3"),
             "Claro" => ("#E9EEF7", "#F8FAFD", "#6D4AFF", "#526075"),
-            _ => ("#030303", "#0D0D0D", "#F2F2F2", "#9A9A9A")
+            _ => ("#000000", "#0D0D0D", "#F2F2F2", "#9A9A9A")
         };
         Application.Current.Resources["VortexBackgroundBrush"] = Brush(palette.Item1);
         Application.Current.Resources["SurfaceBrush"] = Brush(palette.Item2);
