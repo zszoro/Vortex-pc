@@ -1,6 +1,6 @@
 {
-  "version": "1.7.2",
-  "title": "Atualizacao VORTEX 1.7.2 - Login e chat",
-  "notes": "Novo login preto, botoes brancos, icones maiores, chat com input preto e correcao do salvamento da chave OpenRouter.",
+  "version": "1.7.3",
+  "title": "Atualizacao VORTEX 1.7.3 - Discord e voz",
+  "notes": "Corrige comandos naturais com Discord e ajusta a voz do chat para ficar mais calma, ignorando erros e blocos de codigo.",
   "downloadUrl": "https://github.com/zszoro/Vortex-pc/releases"
 }

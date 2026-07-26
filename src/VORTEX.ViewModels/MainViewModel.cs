@@ -157,6 +157,18 @@ public partial class MainViewModel : ObservableObject
                 Status = "Online";
                 return;
             }
+            if (System.Text.RegularExpressions.Regex.IsMatch(
+                    prompt, @"\bdiscord\b.*\b(?:mande|envie|enviar|escreva|mensagem)\b",
+                    System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+            {
+                var openDiscord = await _desktopCommands.TryExecuteAsync("abrir discord");
+                var replyText = openDiscord.Handled && !openDiscord.IsError
+                    ? "Discord aberto. Para enviar a mensagem automaticamente, ative o modo Computer Use para eu controlar a interface com confirmação."
+                    : "Não consegui abrir o Discord. Verifique se ele está instalado ou abra manualmente e use o modo Computer Use para enviar mensagens.";
+                await AddAssistantReplyAsync(replyText);
+                Status = openDiscord.Handled && openDiscord.IsError ? "Error" : "Online";
+                return;
+            }
             var localResult = await _desktopCommands.TryExecuteAsync(prompt);
             var content = localResult.Handled
                 ? localResult.Output

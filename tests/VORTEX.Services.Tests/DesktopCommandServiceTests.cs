@@ -50,6 +50,24 @@ public sealed class DesktopCommandServiceTests
         Assert.EndsWith("chrome.exe", resolved, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public void ExtractsKnownApplicationFromNaturalLanguageCommand()
+    {
+        var app = DesktopCommandService.NormalizeRequestedApplication(
+            "discord mande mensagem para o math");
+
+        Assert.Equal("discord", app);
+    }
+
+    [Fact]
+    public void RejectsUnknownMultiWordApplicationNames()
+    {
+        var app = DesktopCommandService.NormalizeRequestedApplication(
+            "discord mande mensagem para o math".Replace("discord", "programa estranho"));
+
+        Assert.Equal(string.Empty, app);
+    }
+
     private static DesktopCommandService CreateService(bool allow = true) =>
         new(new FakeAuthorizationService(allow), new FakeWorkspaceService());
 

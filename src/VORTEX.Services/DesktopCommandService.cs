@@ -79,7 +79,8 @@ public sealed partial class DesktopCommandService : IDesktopCommandService
         var openApp = OpenAppPattern().Match(text);
         if (openApp.Success)
         {
-            var app = openApp.Groups["app"].Value.Trim();
+            var app = NormalizeRequestedApplication(openApp.Groups["app"].Value);
+            if (string.IsNullOrWhiteSpace(app)) return new(false, string.Empty);
             var allowed = await _authorization.RequestAsync(new(
                 "Abrir programa", "Iniciar aplicativo",
                 "O VORTEX iniciará este programa no Windows.", [app]), cancellationToken);
@@ -215,7 +216,14 @@ public sealed partial class DesktopCommandService : IDesktopCommandService
         try
         {
             var executable = ResolveInstalledApplication(executableName);
-            Process.Start(new ProcessStartInfo(executable) { UseShellExecute = true });
+            var startInfo = new ProcessStartInfo(executable) { UseShellExecute = true };
+            if (executableName.Equals("Discord.exe", StringComparison.OrdinalIgnoreCase)
+                && Path.GetFileName(executable).Equals("Update.exe", StringComparison.OrdinalIgnoreCase))
+            {
+                startInfo.ArgumentList.Add("--processStart");
+                startInfo.ArgumentList.Add("Discord.exe");
+            }
+            Process.Start(startInfo);
             return new(true, $"Aplicativo aberto: {requested}");
         }
         catch (Exception ex)
@@ -280,6 +288,56 @@ public sealed partial class DesktopCommandService : IDesktopCommandService
             _ => []
         };
         return candidates.FirstOrDefault(File.Exists) ?? executable;
+    }
+
+    internal static string NormalizeRequestedApplication(string requested)
+    {
+        var text = requested.Trim().Trim('.', '"', '\'');
+        if (string.IsNullOrWhiteSpace(text)) return string.Empty;
+        var lower = text.ToLowerInvariant();
+        var knownApps = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["bloco de notas"] = "bloco de notas",
+            ["notepad"] = "notepad",
+            ["calculadora"] = "calculadora",
+            ["calculator"] = "calculator",
+            ["explorador de arquivos"] = "explorador de arquivos",
+            ["explorador"] = "explorador",
+            ["explorer"] = "explorer",
+            ["paint"] = "paint",
+            ["terminal"] = "terminal",
+            ["powershell"] = "powershell",
+            ["prompt"] = "prompt",
+            ["cmd"] = "cmd",
+            ["google chrome"] = "google chrome",
+            ["chrome"] = "chrome",
+            ["microsoft edge"] = "microsoft edge",
+            ["edge"] = "edge",
+            ["mozilla firefox"] = "mozilla firefox",
+            ["firefox"] = "firefox",
+            ["spotify"] = "spotify",
+            ["discord"] = "discord",
+            ["visual studio code"] = "visual studio code",
+            ["vs code"] = "vs code",
+            ["vscode"] = "vscode",
+            ["configurações"] = "configurações",
+            ["configuracoes"] = "configuracoes"
+        };
+
+        foreach (var app in knownApps.Keys.OrderByDescending(key => key.Length))
+        {
+            if (lower.Equals(app, StringComparison.OrdinalIgnoreCase)
+                || lower.StartsWith(app + " ", StringComparison.OrdinalIgnoreCase)
+                || lower.StartsWith(app + ",", StringComparison.OrdinalIgnoreCase)
+                || lower.StartsWith(app + ":", StringComparison.OrdinalIgnoreCase))
+            {
+                return knownApps[app];
+            }
+        }
+
+        return text.Contains(' ')
+            ? string.Empty
+            : text;
     }
 
     private static bool TryGetTerminalCommand(string text, out string command)

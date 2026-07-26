@@ -39,6 +39,7 @@ public partial class MainWindow
         DataContext = viewModel;
         _updateService = updateService;
         InitializeComponent();
+        ConfigureAssistantVoice();
         viewModel.SpotifyPanelRequested += OpenSpotifyPanel;
         viewModel.PlanningPanelRequested += OpenPlanningPanel;
         Loaded += async (_, _) => await CheckForUpdatesAsync();
@@ -62,9 +63,67 @@ public partial class MainWindow
         if (_voiceMuted || e.NewItems is null) return;
         var reply = e.NewItems.OfType<ChatMessage>().LastOrDefault(item => item.Role == "VORTEX");
         if (reply == null) return;
-        var spokenText = Regex.Replace(reply.Content, @"[`*_#>\[\]()]", " ");
+        if (!ShouldSpeak(reply.Content)) return;
+        var spokenText = PrepareSpeechText(reply.Content);
+        if (string.IsNullOrWhiteSpace(spokenText)) return;
         _speech.SpeakAsyncCancelAll();
         _speech.SpeakAsync(spokenText);
+    }
+
+    private void ConfigureAssistantVoice()
+    {
+        _speech.Rate = -2;
+        _speech.Volume = 88;
+        var voices = _speech.GetInstalledVoices()
+            .Where(voice => voice.Enabled)
+            .Select(voice => voice.VoiceInfo)
+            .ToList();
+        var preferred = voices.FirstOrDefault(voice =>
+                            voice.Gender == VoiceGender.Male
+                            && voice.Culture.Name.StartsWith("pt", StringComparison.OrdinalIgnoreCase))
+                        ?? voices.FirstOrDefault(voice => voice.Gender == VoiceGender.Male)
+                        ?? voices.FirstOrDefault();
+        if (preferred != null)
+            _speech.SelectVoice(preferred.Name);
+    }
+
+    private static bool ShouldSpeak(string content)
+    {
+        if (string.IsNullOrWhiteSpace(content)) return false;
+        var trimmed = content.TrimStart();
+        if (trimmed.StartsWith("Não consegui", StringComparison.OrdinalIgnoreCase)
+            || trimmed.StartsWith("Nao consegui", StringComparison.OrdinalIgnoreCase)
+            || trimmed.StartsWith("Ocorreu um erro", StringComparison.OrdinalIgnoreCase)
+            || trimmed.StartsWith("Erro", StringComparison.OrdinalIgnoreCase)
+            || trimmed.StartsWith("Ação cancelada", StringComparison.OrdinalIgnoreCase)
+            || trimmed.StartsWith("Acao cancelada", StringComparison.OrdinalIgnoreCase)
+            || trimmed.StartsWith("Pasta não encontrada", StringComparison.OrdinalIgnoreCase)
+            || trimmed.StartsWith("Caminho não encontrado", StringComparison.OrdinalIgnoreCase)
+            || trimmed.Contains("Unhandled exception", StringComparison.OrdinalIgnoreCase)
+            || trimmed.Contains("stack trace", StringComparison.OrdinalIgnoreCase)
+            || trimmed.Contains("OpenRouter recusou", StringComparison.OrdinalIgnoreCase)
+            || trimmed.Contains("<vortex-file-actions>", StringComparison.OrdinalIgnoreCase)
+            || trimmed.Contains("```", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        var codeSignals = new[] { "using ", "namespace ", "public class ", "private ", "function ", "const ", "let ", "var ", "=>", "{", "};" };
+        var signalCount = codeSignals.Count(signal => trimmed.Contains(signal, StringComparison.Ordinal));
+        return signalCount < 3;
+    }
+
+    private static string PrepareSpeechText(string content)
+    {
+        var withoutCodeBlocks = Regex.Replace(content, "```[\\s\\S]*?```", " ", RegexOptions.Multiline);
+        var withoutInlineCode = Regex.Replace(withoutCodeBlocks, "`[^`]+`", " ");
+        var plain = Regex.Replace(withoutInlineCode, @"[*_#>\[\]{}()<>|\\/]", " ");
+        plain = Regex.Replace(plain, @"https?://\S+", " link ");
+        plain = Regex.Replace(plain, @"\s+", " ").Trim();
+        const int maxSpeechCharacters = 900;
+        return plain.Length > maxSpeechCharacters
+            ? plain[..maxSpeechCharacters] + "."
+            : plain;
     }
 
     private async Task CheckForUpdatesAsync()
