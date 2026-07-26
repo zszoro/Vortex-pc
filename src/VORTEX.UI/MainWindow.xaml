@@ -202,7 +202,7 @@
                         </Button>
                         <Button Style="{StaticResource NavButtonStyle}" Click="Terminal_Click">
                             <StackPanel Orientation="Horizontal">
-                                <ui:SymbolIcon Symbol="WindowConsole24" FontSize="28" Margin="0,0,14,0"/>
+                                <ui:SymbolIcon Symbol="WindowConsole20" FontSize="28" Margin="0,0,14,0"/>
                                 <TextBlock Text="Terminal" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
