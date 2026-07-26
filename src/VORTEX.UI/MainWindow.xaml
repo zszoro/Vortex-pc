@@ -26,6 +26,18 @@
                 </DataTrigger>
             </Style.Triggers>
         </Style>
+        <Style x:Key="MessageIconButton" TargetType="Button">
+            <Setter Property="Width" Value="30"/>
+            <Setter Property="Height" Value="27"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0,0,6,0"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#D9E2F0"/>
+            <Setter Property="BorderBrush" Value="#33465F"/>
+            <Setter Property="ToolTipService.InitialShowDelay" Value="1000"/>
+            <Setter Property="ToolTipService.ShowDuration" Value="8000"/>
+        </Style>
     </Window.Resources>
 
     <Grid Background="{DynamicResource VortexBackgroundBrush}">
@@ -88,6 +100,10 @@
                         <Button Style="{StaticResource NavButtonStyle}" Content="●  Conversa" Click="FocusChat_Click"/>
                         <Button Style="{StaticResource NavButtonStyle}" Content="◈  Memória" Click="Memory_Click"/>
                         <Button Style="{StaticResource NavButtonStyle}" Content="⌁  Automações" Click="Automations_Click"/>
+                        <Button Style="{StaticResource NavButtonStyle}" Content="●  Spotify"
+                                Foreground="#1ED760" Click="Spotify_Click"/>
+                        <Button Style="{StaticResource NavButtonStyle}" Content="✦  Planejamento"
+                                Foreground="#B7A9FF" Click="Planning_Click"/>
                         <Button Style="{StaticResource NavButtonStyle}" Content="▣  Meus arquivos" Click="Files_Click"/>
                         <Button Style="{StaticResource NavButtonStyle}" Content="↶  Backups" Click="Backups_Click"/>
                         <Button Style="{StaticResource NavButtonStyle}" Content="›_  Terminal" Click="Terminal_Click"/>
@@ -193,17 +209,17 @@
                                                        Foreground="{StaticResource AccentBrush}" Margin="0,0,0,6"/>
                                             <TextBlock Text="{Binding Content}" TextWrapping="Wrap" FontSize="14" LineHeight="21"/>
                                             <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                                                <Button Content="Copiar" Click="CopyMessage_Click"
-                                                        Tag="{Binding Content}" Padding="8,3" Margin="0,0,6,0"
-                                                        FontSize="10" Background="Transparent"/>
-                                                <Button Content="Mencionar"
+                                                <Button Content="⧉" ToolTip="Copiar mensagem"
+                                                        Style="{StaticResource MessageIconButton}"
+                                                        Click="CopyMessage_Click" Tag="{Binding Content}"/>
+                                                <Button Content="↩" ToolTip="Mencionar mensagem"
+                                                        Style="{StaticResource MessageIconButton}"
                                                         Command="{Binding DataContext.MentionMessageCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                        CommandParameter="{Binding}" Padding="8,3" Margin="0,0,6,0"
-                                                        FontSize="10" Background="Transparent"/>
-                                                <Button Content="Gerar outra resposta"
+                                                        CommandParameter="{Binding}"/>
+                                                <Button Content="↻" ToolTip="Gerar outra resposta"
+                                                        Style="{StaticResource MessageIconButton}"
                                                         Command="{Binding DataContext.RegenerateResponseCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                        CommandParameter="{Binding}" Padding="8,3"
-                                                        FontSize="10" Background="Transparent"/>
+                                                        CommandParameter="{Binding}"/>
                                             </StackPanel>
                                         </StackPanel>
                                     </Border>

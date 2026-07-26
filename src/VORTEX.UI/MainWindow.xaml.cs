@@ -20,11 +20,18 @@ public partial class MainWindow
         DataContext = viewModel;
         _updateService = updateService;
         InitializeComponent();
+        viewModel.SpotifyPanelRequested += OpenSpotifyPanel;
+        viewModel.PlanningPanelRequested += OpenPlanningPanel;
         Loaded += async (_, _) => await CheckForUpdatesAsync();
         _updateTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(3) };
         _updateTimer.Tick += async (_, _) => await CheckForUpdatesAsync();
         _updateTimer.Start();
         Closed += (_, _) => _updateTimer.Stop();
+        Closed += (_, _) =>
+        {
+            viewModel.SpotifyPanelRequested -= OpenSpotifyPanel;
+            viewModel.PlanningPanelRequested -= OpenPlanningPanel;
+        };
     }
 
     private async Task CheckForUpdatesAsync()
@@ -76,6 +83,29 @@ public partial class MainWindow
     {
         ViewModel.UserInput = "Crie uma automação para: ";
         ChatInput.Focus();
+    }
+
+    private void Spotify_Click(object sender, RoutedEventArgs e) => OpenSpotifyPanel();
+    private void Planning_Click(object sender, RoutedEventArgs e) => OpenPlanningPanel();
+
+    private void OpenSpotifyPanel()
+    {
+        Dispatcher.Invoke(() =>
+        {
+            var window = App.ServiceProvider.GetRequiredService<SpotifyWindow>();
+            window.Owner = this;
+            window.Show();
+        });
+    }
+
+    private void OpenPlanningPanel()
+    {
+        Dispatcher.Invoke(() =>
+        {
+            var window = App.ServiceProvider.GetRequiredService<PlanningWindow>();
+            window.Owner = this;
+            window.Show();
+        });
     }
 
     private void Summarize_Click(object sender, RoutedEventArgs e)

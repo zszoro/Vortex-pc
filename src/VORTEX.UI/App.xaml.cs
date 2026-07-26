@@ -62,6 +62,8 @@ namespace VORTEX.UI
             services.AddSingleton<IUpdateService, GitHubUpdateService>();
             services.AddSingleton<IAuthorizationService, AuthorizationService>();
             services.AddSingleton<IWorkspaceService, WorkspaceService>();
+            services.AddSingleton<IPlanningService, PlanningService>();
+            services.AddSingleton<ISpotifyService, SpotifyService>();
 
             // ViewModels
             services.AddTransient<SetupViewModel>();
@@ -74,6 +76,8 @@ namespace VORTEX.UI
             services.AddTransient<QuickChatWindow>();
             services.AddTransient<SettingsWindow>();
             services.AddTransient<SettingsIAPage>();
+            services.AddTransient<SpotifyWindow>();
+            services.AddTransient<PlanningWindow>();
         }
 
         protected override void OnExit(ExitEventArgs e)

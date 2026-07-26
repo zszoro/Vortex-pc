@@ -1,0 +1,73 @@
+<Window x:Class="VORTEX.UI.SpotifyWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Spotify no VORTEX" Icon="Assets/vortex.ico"
+        Width="720" Height="560" MinWidth="620" MinHeight="500"
+        WindowStartupLocation="CenterOwner" Background="#0B0B0D"
+        Foreground="#FFFFFF">
+    <Grid Margin="28">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Grid Width="58" Height="58">
+                <Ellipse Fill="#1ED760"/>
+                <TextBlock Text="≋" FontSize="42" FontWeight="Bold" Foreground="#0B0B0D"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Margin="0,-9,0,0"/>
+            </Grid>
+            <StackPanel Grid.Column="1" Margin="16,0">
+                <TextBlock Text="Spotify × VORTEX" FontSize="26" FontWeight="Bold"/>
+                <TextBlock x:Name="ConnectionText" Text="Conecte sua conta quando quiser usar música."
+                           Foreground="#A7A7A7" Margin="0,5,0,0"/>
+            </StackPanel>
+            <Button Grid.Column="2" x:Name="ConnectButton" Content="Conectar Spotify"
+                    Click="Connect_Click" Background="#1ED760" Foreground="#08140C"
+                    FontWeight="Bold" Padding="18,10" BorderThickness="0"/>
+        </Grid>
+
+        <Border Grid.Row="1" Background="#17171B" CornerRadius="24" Margin="0,28,0,20"
+                BorderBrush="#29292F" BorderThickness="1" Padding="30">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Border Width="190" Height="190" CornerRadius="26" Background="#24242A">
+                        <Grid>
+                            <Ellipse Width="100" Height="100" Fill="#1ED760" Opacity=".14"/>
+                            <TextBlock Text="♫" FontSize="72" Foreground="#1ED760"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+                    <TextBlock x:Name="TrackText" Text="Nenhuma música ativa"
+                               FontSize="23" FontWeight="SemiBold"
+                               HorizontalAlignment="Center" Margin="0,22,0,5"/>
+                    <TextBlock x:Name="ArtistText" Text="—" Foreground="#A7A7A7"
+                               FontSize="14" HorizontalAlignment="Center"/>
+                </StackPanel>
+                <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Button Content="⏮" Click="Previous_Click" ToolTip="Faixa anterior"
+                            Width="50" Height="44" Margin="5" FontSize="18"/>
+                    <Button x:Name="PlayButton" Content="▶" Click="PlayPause_Click"
+                            ToolTip="Tocar ou pausar" Width="58" Height="50" Margin="5"
+                            FontSize="20" Background="#1ED760" Foreground="#07120A"/>
+                    <Button Content="⏭" Click="Next_Click" ToolTip="Próxima faixa"
+                            Width="50" Height="44" Margin="5" FontSize="18"/>
+                    <Button Content="↻" Click="Refresh_Click" ToolTip="Atualizar reprodução"
+                            Width="50" Height="44" Margin="5" FontSize="20"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+        <TextBlock Grid.Row="2" Text="O painel permanece fechado até você clicar no botão ou pedir ao VORTEX."
+                   Foreground="#77777F" HorizontalAlignment="Center"/>
+    </Grid>
+</Window>

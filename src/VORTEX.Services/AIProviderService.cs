@@ -19,15 +19,18 @@ namespace VORTEX.Services
         private readonly IEnumerable<IAIProvider> _providers;
         private readonly IDatabaseService _databaseService;
         private readonly IWorkspaceService _workspaceService;
+        private readonly IPlanningService _planningService;
 
         public AIProviderService(
             IEnumerable<IAIProvider> providers,
             IDatabaseService databaseService,
-            IWorkspaceService workspaceService)
+            IWorkspaceService workspaceService,
+            IPlanningService planningService)
         {
             _providers = providers;
             _databaseService = databaseService;
             _workspaceService = workspaceService;
+            _planningService = planningService;
         }
 
         public IEnumerable<IAIProvider> GetAvailableProviders() => _providers;
@@ -62,12 +65,19 @@ namespace VORTEX.Services
             }
 
             var workspaceContext = await BuildWorkspaceContextAsync(prompt);
+            await _planningService.LoadAsync();
+            var planningContext = _planningService.Content.Length > 12000
+                ? _planningService.Content[^12000..]
+                : _planningService.Content;
             var contextualPrompt = $$"""
                 Use o histórico abaixo para manter continuidade. A última mensagem é o pedido atual.
                 Não diga que esqueceu informações presentes neste histórico.
 
                 WORKSPACE ATUAL:
                 {{workspaceContext}}
+
+                PLANEJAMENTO PESSOAL DO USUÁRIO:
+                {{planningContext}}
 
                 MODO AGENTE:
                 Quando o usuário pedir alterações no projeto, analise os arquivos fornecidos e proponha mudanças completas.

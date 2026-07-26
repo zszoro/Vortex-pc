@@ -1,0 +1,161 @@
+using System.Diagnostics;
+using System.Net;
+using System.Net.Http.Headers;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
+using VORTEX.Core;
+
+namespace VORTEX.Services;
+
+public sealed class SpotifyService : ISpotifyService
+{
+    public const string RedirectUri = "http://127.0.0.1:43821/spotify/callback";
+    private const string ListenerPrefix = "http://127.0.0.1:43821/spotify/";
+    private static readonly HttpClient Http = new();
+    private readonly IAuthorizationService _authorization;
+    private string? _accessToken;
+    private string? _refreshToken;
+    private string? _clientId;
+
+    public SpotifyState State { get; private set; } =
+        new(false, "Não conectado", "Nenhuma música", string.Empty, false);
+
+    public SpotifyService(IAuthorizationService authorization) =>
+        _authorization = authorization;
+
+    public async Task<SpotifyState> ConnectAsync(
+        string clientId, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(clientId))
+            throw new ArgumentException("Informe o Client ID do Spotify.");
+        if (!await _authorization.RequestAsync(new(
+                "Spotify e navegador",
+                "Conectar conta Spotify",
+                "O VORTEX abrirá a autorização oficial do Spotify e receberá o retorno somente em 127.0.0.1.",
+                ["accounts.spotify.com", RedirectUri]), cancellationToken))
+            throw new OperationCanceledException("Conexão cancelada.");
+
+        _clientId = clientId.Trim();
+        var verifier = Base64Url(RandomNumberGenerator.GetBytes(64));
+        var challenge = Base64Url(SHA256.HashData(Encoding.ASCII.GetBytes(verifier)));
+        var state = Base64Url(RandomNumberGenerator.GetBytes(18));
+        var scopes = Uri.EscapeDataString(
+            "user-read-private user-read-email user-read-playback-state user-modify-playback-state");
+        var url =
+            $"https://accounts.spotify.com/authorize?client_id={Uri.EscapeDataString(_clientId)}" +
+            $"&response_type=code&redirect_uri={Uri.EscapeDataString(RedirectUri)}" +
+            $"&code_challenge_method=S256&code_challenge={challenge}&state={state}&scope={scopes}";
+
+        using var listener = new HttpListener();
+        listener.Prefixes.Add(ListenerPrefix);
+        listener.Start();
+        Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+        var context = await listener.GetContextAsync().WaitAsync(
+            TimeSpan.FromMinutes(3), cancellationToken);
+        var returnedState = context.Request.QueryString["state"];
+        var code = context.Request.QueryString["code"];
+        var responseHtml = Encoding.UTF8.GetBytes(
+            "<html><body style='background:#121212;color:white;font-family:sans-serif;text-align:center;padding:70px'><h1>Spotify conectado ao VORTEX</h1><p>Você pode fechar esta janela.</p></body></html>");
+        context.Response.ContentType = "text/html; charset=utf-8";
+        await context.Response.OutputStream.WriteAsync(responseHtml, cancellationToken);
+        context.Response.Close();
+        if (returnedState != state || string.IsNullOrWhiteSpace(code))
+            throw new InvalidOperationException("O retorno do Spotify não pôde ser validado.");
+
+        using var tokenResponse = await Http.PostAsync(
+            "https://accounts.spotify.com/api/token",
+            new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["client_id"] = _clientId,
+                ["grant_type"] = "authorization_code",
+                ["code"] = code,
+                ["redirect_uri"] = RedirectUri,
+                ["code_verifier"] = verifier
+            }), cancellationToken);
+        var tokenJson = await tokenResponse.Content.ReadAsStringAsync(cancellationToken);
+        tokenResponse.EnsureSuccessStatusCode();
+        using var tokenDocument = JsonDocument.Parse(tokenJson);
+        _accessToken = tokenDocument.RootElement.GetProperty("access_token").GetString();
+        _refreshToken = tokenDocument.RootElement.TryGetProperty("refresh_token", out var refresh)
+            ? refresh.GetString()
+            : null;
+        return await RefreshAsync(cancellationToken);
+    }
+
+    public async Task<SpotifyState> RefreshAsync(CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(_accessToken)) return State;
+        var user = await GetJsonAsync("https://api.spotify.com/v1/me", cancellationToken);
+        var userName = user.RootElement.TryGetProperty("display_name", out var displayName)
+            ? displayName.GetString() ?? "Spotify"
+            : "Spotify";
+        using var request = Authorized(HttpMethod.Get, "https://api.spotify.com/v1/me/player");
+        using var response = await Http.SendAsync(request, cancellationToken);
+        if (response.StatusCode == HttpStatusCode.NoContent)
+            return State = new(true, userName, "Nenhum dispositivo ativo", string.Empty, false);
+        var playback = JsonDocument.Parse(
+            await response.Content.ReadAsStringAsync(cancellationToken));
+        var root = playback.RootElement;
+        var track = root.TryGetProperty("item", out var item)
+            && item.ValueKind != JsonValueKind.Null
+            && item.TryGetProperty("name", out var name)
+                ? name.GetString() ?? "Sem faixa"
+                : "Sem faixa";
+        var artist = item.ValueKind != JsonValueKind.Undefined
+                     && item.TryGetProperty("artists", out var artists)
+                     && artists.GetArrayLength() > 0
+            ? artists[0].GetProperty("name").GetString() ?? string.Empty
+            : string.Empty;
+        var playing = root.TryGetProperty("is_playing", out var isPlaying)
+                      && isPlaying.GetBoolean();
+        return State = new(true, userName, track, artist, playing);
+    }
+
+    public async Task PlaybackAsync(
+        string action, CancellationToken cancellationToken = default)
+    {
+        var (method, endpoint) = action switch
+        {
+            "play" => (HttpMethod.Put, "play"),
+            "pause" => (HttpMethod.Put, "pause"),
+            "next" => (HttpMethod.Post, "next"),
+            "previous" => (HttpMethod.Post, "previous"),
+            _ => throw new ArgumentOutOfRangeException(nameof(action))
+        };
+        using var request = Authorized(
+            method, $"https://api.spotify.com/v1/me/player/{endpoint}");
+        request.Content = new StringContent(string.Empty);
+        using var response = await Http.SendAsync(request, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        await Task.Delay(350, cancellationToken);
+        await RefreshAsync(cancellationToken);
+    }
+
+    public void Disconnect()
+    {
+        _accessToken = null;
+        _refreshToken = null;
+        State = new(false, "Não conectado", "Nenhuma música", string.Empty, false);
+    }
+
+    private async Task<JsonDocument> GetJsonAsync(
+        string url, CancellationToken cancellationToken)
+    {
+        using var request = Authorized(HttpMethod.Get, url);
+        using var response = await Http.SendAsync(request, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return JsonDocument.Parse(
+            await response.Content.ReadAsStringAsync(cancellationToken));
+    }
+
+    private HttpRequestMessage Authorized(HttpMethod method, string url)
+    {
+        var request = new HttpRequestMessage(method, url);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
+        return request;
+    }
+
+    private static string Base64Url(byte[] bytes) =>
+        Convert.ToBase64String(bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+}

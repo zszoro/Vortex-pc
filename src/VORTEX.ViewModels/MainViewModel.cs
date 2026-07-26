@@ -11,6 +11,7 @@ public partial class MainViewModel : ObservableObject
     private readonly IDatabaseService _dbService;
     private readonly IDesktopCommandService _desktopCommands;
     private readonly IWorkspaceService _workspaceService;
+    private readonly IPlanningService _planningService;
 
     [ObservableProperty] private string _userName = "Você";
     [ObservableProperty] private string _status = "Online";
@@ -32,17 +33,21 @@ public partial class MainViewModel : ObservableObject
     public ObservableCollection<string> WorkspaceFiles { get; } = [];
     public ObservableCollection<string> FilteredWorkspaceFiles { get; } = [];
     public ObservableCollection<string> PendingChangePreviews { get; } = [];
+    public event Action? SpotifyPanelRequested;
+    public event Action? PlanningPanelRequested;
 
     public MainViewModel(
         IAIProviderService aiService,
         IDatabaseService dbService,
         IDesktopCommandService desktopCommands,
-        IWorkspaceService workspaceService)
+        IWorkspaceService workspaceService,
+        IPlanningService planningService)
     {
         _aiService = aiService;
         _dbService = dbService;
         _desktopCommands = desktopCommands;
         _workspaceService = workspaceService;
+        _planningService = planningService;
         ApplyWorkspace(_workspaceService.Current);
         _ = InitializeAsync();
     }
@@ -73,6 +78,37 @@ public partial class MainViewModel : ObservableObject
         IsBusy = true;
         try
         {
+            if (System.Text.RegularExpressions.Regex.IsMatch(
+                    prompt, @"\b(?:abra|abrir|mostre|mostrar)\b.*\bspotify\b",
+                    System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+            {
+                SpotifyPanelRequested?.Invoke();
+                await AddAssistantReplyAsync("Painel do Spotify aberto.");
+                Status = "Online";
+                return;
+            }
+            var objectiveMatch = System.Text.RegularExpressions.Regex.Match(
+                prompt,
+                @"(?:adicione|adicionar|crie|criar)\s+(?:um\s+)?(?:novo\s+)?objetivo\s*:?\s*(?<goal>.+)",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            if (objectiveMatch.Success)
+            {
+                var goal = objectiveMatch.Groups["goal"].Value.Trim();
+                await _planningService.AddObjectiveAsync(goal);
+                await AddAssistantReplyAsync(
+                    $"Objetivo adicionado ao Planejamento VORTEX: **{goal}**");
+                Status = "Online";
+                return;
+            }
+            if (System.Text.RegularExpressions.Regex.IsMatch(
+                    prompt, @"\b(?:abra|abrir|mostre|mostrar)\b.*\b(?:planejamento|objetivos|notas)\b",
+                    System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+            {
+                PlanningPanelRequested?.Invoke();
+                await AddAssistantReplyAsync("Planejamento VORTEX aberto.");
+                Status = "Online";
+                return;
+            }
             var localResult = await _desktopCommands.TryExecuteAsync(prompt);
             var content = localResult.Handled
                 ? localResult.Output
@@ -105,6 +141,14 @@ public partial class MainViewModel : ObservableObject
         {
             IsBusy = false;
         }
+    }
+
+    private async Task AddAssistantReplyAsync(string content)
+    {
+        var reply = new ChatMessage { Role = "VORTEX", Content = content };
+        Messages.Add(reply);
+        LastAssistantMessage = content;
+        await _dbService.SaveChatMessageAsync(reply);
     }
 
     partial void OnUserInputChanged(string value)

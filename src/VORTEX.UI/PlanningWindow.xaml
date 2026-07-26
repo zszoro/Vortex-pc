@@ -1,0 +1,62 @@
+<Window x:Class="VORTEX.UI.PlanningWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Planejamento VORTEX" Icon="Assets/vortex.ico"
+        Width="980" Height="680" MinWidth="760" MinHeight="560"
+        WindowStartupLocation="CenterOwner" Background="#0D1018" Foreground="#FFFFFF">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="230"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Border Background="#131827" Padding="22">
+            <StackPanel>
+                <TextBlock Text="VORTEX NOTES" Foreground="#8B7CFF"
+                           FontSize="12" FontWeight="Bold"/>
+                <TextBlock Text="Planejamento" FontSize="24" FontWeight="SemiBold"
+                           Margin="0,5,0,28"/>
+                <Button Content="◎  Visão geral" Style="{StaticResource NavButtonStyle}"/>
+                <Button Content="◈  Objetivos" Style="{StaticResource NavButtonStyle}"/>
+                <Button Content="⌁  Notas" Style="{StaticResource NavButtonStyle}"/>
+                <Button Content="✓  Concluídos" Style="{StaticResource NavButtonStyle}"/>
+                <Border Background="#151D2B" CornerRadius="12" Padding="12" Margin="0,28,0,0">
+                    <TextBlock Text="A IA usa este documento como memória de planejamento."
+                               TextWrapping="Wrap" Foreground="#9AA5B7" FontSize="11"/>
+                </Border>
+            </StackPanel>
+        </Border>
+        <Grid Grid.Column="1" Margin="30">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <TextBlock Text="Mapa de objetivos" FontSize="28" FontWeight="SemiBold"/>
+            <Grid Grid.Row="1" Margin="0,20,0,16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="NewObjectiveInput" Padding="13,10"
+                         Background="#151D2B" Foreground="#FFFFFF"
+                         ToolTip="Digite um objetivo novo"/>
+                <Button Grid.Column="1" Content="+ Adicionar objetivo"
+                        Click="AddObjective_Click" Padding="16,10" Margin="10,0,0,0"
+                        Background="#7C4DFF" Foreground="#FFFFFF"/>
+            </Grid>
+            <TextBox Grid.Row="2" x:Name="Editor" AcceptsReturn="True"
+                     AcceptsTab="True" VerticalScrollBarVisibility="Auto"
+                     TextWrapping="Wrap" FontFamily="Consolas" FontSize="14"
+                     Background="#101522" Foreground="#FFFFFF" CaretBrush="#55E6FF"
+                     BorderBrush="#28344A" Padding="20"/>
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right"
+                        Margin="0,16,0,0">
+                <TextBlock x:Name="SaveStatus" Foreground="#8E99AB"
+                           VerticalAlignment="Center" Margin="0,0,14,0"/>
+                <Button Content="Salvar planejamento" Click="Save_Click"
+                        Padding="18,9" Background="#55E6FF" Foreground="#071019"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>
