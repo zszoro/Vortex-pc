@@ -1,6 +1,6 @@
 {
-  "version": "1.7.8",
-  "title": "Atualizacao VORTEX 1.7.8 - Chat e controle PC",
-  "notes": "O chat agora rola automaticamente para a ultima mensagem, a lateral ficou mais compacta e a IA recebeu instrucoes corretas sobre controle do PC.",
+  "version": "1.8.0",
+  "title": "Atualizacao VORTEX 1.8.0 - Vortex Library",
+  "notes": "Nova Biblioteca Inteligente com busca por metadados, categorias, filtros, favoritos, historico, grade e lista. Importe arquivos, pastas e projetos, edite, duplique, exclua e reutilize recursos. As Tools e o Project Composer agora consultam a Library antes de criar projetos.",
   "downloadUrl": "https://github.com/zszoro/Vortex-pc/releases"
 }

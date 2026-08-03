@@ -20,17 +20,20 @@ namespace VORTEX.Services
         private readonly IDatabaseService _databaseService;
         private readonly IWorkspaceService _workspaceService;
         private readonly IPlanningService _planningService;
+        private readonly IProjectComposer _projectComposer;
 
         public AIProviderService(
             IEnumerable<IAIProvider> providers,
             IDatabaseService databaseService,
             IWorkspaceService workspaceService,
-            IPlanningService planningService)
+            IPlanningService planningService,
+            IProjectComposer projectComposer)
         {
             _providers = providers;
             _databaseService = databaseService;
             _workspaceService = workspaceService;
             _planningService = planningService;
+            _projectComposer = projectComposer;
         }
 
         public IEnumerable<IAIProvider> GetAvailableProviders() => _providers;
@@ -70,6 +73,7 @@ namespace VORTEX.Services
             }
 
             var workspaceContext = await BuildWorkspaceContextAsync(prompt);
+            var composerContext = await _projectComposer.BuildContextAsync(prompt);
             await _planningService.LoadAsync();
             var planningContext = _planningService.Content.Length > 12000
                 ? _planningService.Content[^12000..]
@@ -83,6 +87,9 @@ namespace VORTEX.Services
 
                 PLANEJAMENTO PESSOAL DO USUÁRIO:
                 {{planningContext}}
+
+                PROJECT COMPOSER E VORTEX LIBRARY:
+                {{composerContext}}
 
                 MODO AGENTE:
                 Quando o usuário pedir alterações no projeto, analise os arquivos fornecidos e proponha mudanças completas.
@@ -103,6 +110,9 @@ namespace VORTEX.Services
                 Use apenas caminhos relativos à Workspace. Em operações write, envie o conteúdo COMPLETO final.
                 O aplicativo mostrará o plano, pedirá autorização e criará backup antes de aplicar.
                 Se o pedido for apenas explicativo, não gere ações.
+                Antes de criar um recurso, use os metadados da Vortex Library acima. Só reutilize um item quando ele for compatível com o pedido.
+                A Library contém componentes; as Tools apenas executam tarefas. Não trate uma Tool como template.
+                Sempre que criar componente, template, API, dashboard, layout, asset, script, prompt, automação, módulo ou tema reutilizável, finalize perguntando: "Deseja salvar este recurso na Biblioteca?"
 
                 HISTÓRICO:
                 {{transcript}}

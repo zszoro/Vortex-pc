@@ -42,6 +42,8 @@ public partial class MainWindow
         ConfigureAssistantVoice();
         viewModel.SpotifyPanelRequested += OpenSpotifyPanel;
         viewModel.PlanningPanelRequested += OpenPlanningPanel;
+        viewModel.LibraryPanelRequested += OpenLibraryPanel;
+        viewModel.LibraryImportRequested += OpenLibraryImport;
         Loaded += async (_, _) => await CheckForUpdatesAsync();
         Loaded += (_, _) =>
         {
@@ -57,6 +59,8 @@ public partial class MainWindow
             viewModel.Messages.CollectionChanged -= Messages_CollectionChanged;
             viewModel.SpotifyPanelRequested -= OpenSpotifyPanel;
             viewModel.PlanningPanelRequested -= OpenPlanningPanel;
+            viewModel.LibraryPanelRequested -= OpenLibraryPanel;
+            viewModel.LibraryImportRequested -= OpenLibraryImport;
             _recognizer?.Dispose();
             _speech.Dispose();
         };
@@ -180,6 +184,37 @@ public partial class MainWindow
     {
         ScrollToLatestMessage();
         ChatInput.Focus();
+    }
+
+    private async void SaveMessageToLibrary_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not System.Windows.Controls.Button { Tag: string content }
+            || string.IsNullOrWhiteSpace(content)) return;
+        var temporary = Path.Combine(Path.GetTempPath(), $"vortex-library-{Guid.NewGuid():N}.md");
+        try
+        {
+            await File.WriteAllTextAsync(temporary, content);
+            var library = App.ServiceProvider.GetRequiredService<ILibraryService>();
+            var dialog = new LibraryItemDialog(library) { Owner = this };
+            dialog.SetSource(temporary);
+            dialog.SetSuggestedMetadata("Recurso do chat", content.Length > 240 ? content[..240] + "…" : content,
+                "Prompts", "Conteúdo do chat");
+            if (dialog.ShowDialog() == true)
+            {
+                var item = await library.ImportAsync(dialog.Draft);
+                MessageBox.Show(this, $"'{item.Name}' foi adicionado à Vortex Library.",
+                    "VORTEX", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+        catch (Exception exception)
+        {
+            MessageBox.Show(this, exception.Message, "Falha ao salvar na Biblioteca",
+                MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        finally
+        {
+            if (File.Exists(temporary)) File.Delete(temporary);
+        }
     }
 
     private void AddFile_Click(object sender, RoutedEventArgs e)
@@ -357,6 +392,7 @@ public partial class MainWindow
 
     private void Spotify_Click(object sender, RoutedEventArgs e) => OpenSpotifyPanel();
     private void Planning_Click(object sender, RoutedEventArgs e) => OpenPlanningPanel();
+    private void Library_Click(object sender, RoutedEventArgs e) => OpenLibraryPanel();
 
     private void OpenSpotifyPanel()
     {
@@ -373,6 +409,25 @@ public partial class MainWindow
         {
             var window = App.ServiceProvider.GetRequiredService<PlanningWindow>();
             ShowOverlay(window);
+        });
+    }
+
+    private void OpenLibraryPanel()
+    {
+        Dispatcher.Invoke(() =>
+        {
+            var window = App.ServiceProvider.GetRequiredService<LibraryWindow>();
+            ShowOverlay(window);
+        });
+    }
+
+    private void OpenLibraryImport()
+    {
+        Dispatcher.Invoke(() =>
+        {
+            var window = App.ServiceProvider.GetRequiredService<LibraryWindow>();
+            ShowOverlay(window);
+            Dispatcher.BeginInvoke(async () => await window.BeginAddFlowAsync());
         });
     }
 

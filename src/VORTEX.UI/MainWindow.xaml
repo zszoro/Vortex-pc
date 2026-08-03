@@ -188,6 +188,12 @@
                                 <TextBlock Text="Planejamento" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
+                        <Button Style="{StaticResource NavButtonStyle}" Foreground="#C8BCFF" Click="Library_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="Library24" FontSize="24" Margin="0,0,12,0"/>
+                                <TextBlock Text="Biblioteca" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
                         <Button Style="{StaticResource NavButtonStyle}" Click="Files_Click">
                             <StackPanel Orientation="Horizontal">
                                 <ui:SymbolIcon Symbol="Folder24" FontSize="24" Margin="0,0,12,0"/>
@@ -382,6 +388,11 @@
                                                         Command="{Binding DataContext.RegenerateResponseCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                         CommandParameter="{Binding}">
                                                     <ui:SymbolIcon Symbol="ArrowClockwise24" FontSize="18"/>
+                                                </Button>
+                                                <Button ToolTip="Adicionar à Biblioteca"
+                                                        Style="{StaticResource MessageIconButton}"
+                                                        Click="SaveMessageToLibrary_Click" Tag="{Binding Content}">
+                                                    <ui:SymbolIcon Symbol="BookAdd24" FontSize="18"/>
                                                 </Button>
                                             </StackPanel>
                                         </StackPanel>

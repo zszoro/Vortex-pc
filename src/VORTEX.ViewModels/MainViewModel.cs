@@ -41,6 +41,8 @@ public partial class MainViewModel : ObservableObject
     public ObservableCollection<string> PendingChangePreviews { get; } = [];
     public event Action? SpotifyPanelRequested;
     public event Action? PlanningPanelRequested;
+    public event Action? LibraryPanelRequested;
+    public event Action? LibraryImportRequested;
 
     public MainViewModel(
         IAIProviderService aiService,
@@ -160,6 +162,20 @@ public partial class MainViewModel : ObservableObject
             {
                 PlanningPanelRequested?.Invoke();
                 await AddAssistantReplyAsync("Planejamento VORTEX aberto.");
+                Status = "Online";
+                return;
+            }
+            if (IsLibraryOpenRequest(prompt))
+            {
+                LibraryPanelRequested?.Invoke();
+                await AddAssistantReplyAsync("Vortex Library aberta. Pesquise, importe ou reutilize recursos pelo catálogo.");
+                Status = "Online";
+                return;
+            }
+            if (IsLibrarySaveRequest(prompt))
+            {
+                LibraryImportRequested?.Invoke();
+                await AddAssistantReplyAsync("Abri o cadastro da Vortex Library. Selecione o arquivo, pasta ou projeto e confirme os metadados para torná-lo reutilizável.");
                 Status = "Online";
                 return;
             }
@@ -324,6 +340,17 @@ public partial class MainViewModel : ObservableObject
         && System.Text.RegularExpressions.Regex.IsMatch(
             prompt,
             @"\b(?:mande|mandar|envie|enviar|escreva|escrever|digite|digitar|mensagem|msg|fale)\b",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+    internal static bool IsLibraryOpenRequest(string prompt) =>
+        System.Text.RegularExpressions.Regex.IsMatch(
+            prompt, @"\b(?:abra|abrir|mostre|mostrar|acesse|acessar)\b.*\b(?:biblioteca|library)\b",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+    internal static bool IsLibrarySaveRequest(string prompt) =>
+        System.Text.RegularExpressions.Regex.IsMatch(
+            prompt,
+            @"\b(?:adicione|adicionar|salve|salvar|registre|registrar|guarde|guardar)\b.*\b(?:biblioteca|library|componente|projeto|template|prompt|api|asset|script|layout|tema)\b",
             System.Text.RegularExpressions.RegexOptions.IgnoreCase);
 
     internal static string ExtractDiscordMessage(string prompt, string target)

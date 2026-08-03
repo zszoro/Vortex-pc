@@ -6,6 +6,19 @@ namespace VORTEX.Services.Tests;
 public sealed class MainViewModelRoutingTests
 {
     [Theory]
+    [InlineData("abra a biblioteca")]
+    [InlineData("mostrar Vortex Library")]
+    public void RecognizesLibraryOpenRequests(string prompt) =>
+        Assert.True(MainViewModel.IsLibraryOpenRequest(prompt));
+
+    [Theory]
+    [InlineData("Adicione este componente à biblioteca")]
+    [InlineData("Salve este projeto")]
+    [InlineData("Registre este template")]
+    public void RecognizesLibrarySaveRequests(string prompt) =>
+        Assert.True(MainViewModel.IsLibrarySaveRequest(prompt));
+
+    [Theory]
     [InlineData("discord mande mensagem para o math")]
     [InlineData("mande mensagem para o Math no Discord: oi")]
     [InlineData("envie msg no discord para Math")]

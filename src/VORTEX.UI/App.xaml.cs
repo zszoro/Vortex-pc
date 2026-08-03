@@ -24,6 +24,7 @@ namespace VORTEX.UI
 
             var db = ServiceProvider.GetRequiredService<IDatabaseService>();
             await db.InitializeAsync();
+            await ServiceProvider.GetRequiredService<ILibraryService>().InitializeAsync();
 
             var profile = await db.GetUserProfileAsync();
             var activeAccount = await ServiceProvider.GetRequiredService<IAccountService>().GetCurrentAsync();
@@ -69,6 +70,9 @@ namespace VORTEX.UI
             services.AddSingleton<ISpotifyService, SpotifyService>();
             services.AddSingleton<IAccountService, AccountService>();
             services.AddSingleton<IGuiAutomationService, GuiAutomationService>();
+            services.AddSingleton<ILibraryService, LibraryService>();
+            services.AddSingleton<IAgentToolRegistry, AgentToolRegistry>();
+            services.AddSingleton<IProjectComposer, ProjectComposer>();
 
             // ViewModels
             services.AddTransient<SetupViewModel>();
@@ -84,6 +88,8 @@ namespace VORTEX.UI
             services.AddTransient<SpotifyWindow>();
             services.AddTransient<PlanningWindow>();
             services.AddTransient<AccountWindow>();
+            services.AddTransient<LibraryWindow>();
+            services.AddTransient<LibraryItemDialog>();
         }
 
         protected override void OnExit(ExitEventArgs e)
